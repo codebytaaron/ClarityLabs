@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lumen — Analyze</title>
+<title>Clarity Labs — Analyze</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,6 +12,7 @@
     --paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;
     --line:#DAD3C4;--accent:#E8563A;--accent-2:#2E6E63;--card:#FBF9F4;
     --radius:20px;--ease:cubic-bezier(.2,.8,.2,1);
+    --mild:#2E6E63;--moderate:#E4903F;--severe:#D64545;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:"Inter",-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
@@ -37,7 +38,7 @@
   .head h1 .it{font-style:italic;color:var(--accent)}
   .head p{color:var(--ink-soft);font-size:16px;margin:0;max-width:520px;line-height:1.55}
 
-  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;padding-bottom:70px}
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:22px}
   @media(max-width:860px){.grid{grid-template-columns:1fr}}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
 
@@ -51,8 +52,9 @@
   .stage{display:none}
   .holder{position:relative;border-radius:16px;overflow:hidden;background:#141019;display:flex;align-items:center;justify-content:center;min-height:280px}
   canvas{max-width:100%;height:auto;display:block}
-  .loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:12px;background:rgba(20,16,25,.62);color:#fff;font-size:14px;font-weight:500;flex-direction:column}
+  .loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:14px;background:rgba(20,16,25,.66);color:#fff;font-size:14px;font-weight:500;flex-direction:column}
   .loading.on{display:flex}
+  .loading .lbl{opacity:.9}
   .scanbar{width:60%;height:3px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;position:relative}
   .scanbar::after{content:"";position:absolute;left:-40%;top:0;bottom:0;width:40%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:load 1.1s infinite}
   @keyframes load{to{left:110%}}
@@ -70,6 +72,17 @@
   .panel-title{font-family:"Fraunces";font-size:15px;color:var(--ink-soft);font-weight:500;letter-spacing:.02em}
   .total{font-family:"Fraunces";font-size:64px;line-height:1;letter-spacing:-.03em;margin-top:6px}
   .total small{font-size:15px;font-weight:500;color:var(--ink-soft);font-family:"Inter";margin-left:10px}
+
+  /* severity */
+  .sev{margin-top:22px;border-top:1px solid var(--line);padding-top:20px;display:none}
+  .sev.on{display:block}
+  .sev .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+  .sev .level{font-family:"Fraunces";font-size:26px}
+  .sev .score{font-size:12.5px;color:var(--ink-soft);font-weight:500}
+  .sev .meter{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--mild),var(--moderate),var(--severe));position:relative}
+  .sev .marker{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--ink);transform:translateX(-50%);left:0;transition:left 1s var(--ease);box-shadow:0 4px 10px rgba(0,0,0,.18)}
+  .sev .scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:8px;font-weight:500}
+
   .breakdown{margin-top:22px;display:flex;flex-direction:column;gap:9px}
   .chip{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--paper);animation:pop .4s var(--ease)}
   @keyframes pop{from{opacity:0;transform:translateY(8px)}}
@@ -78,23 +91,38 @@
   .chip .count{font-family:"Fraunces";font-size:20px}
   .empty-note{color:var(--ink-soft);font-size:14px;line-height:1.5;padding:6px 0}
 
-  .controls{margin-top:26px;border-top:1px solid var(--line);padding-top:22px}
-  .controls .lab{font-size:13.5px;font-weight:600;display:flex;justify-content:space-between;margin:0 0 8px}
-  .controls .lab span{color:var(--accent);font-variant-numeric:tabular-nums}
-  .controls .lab+input{margin-bottom:18px}
-  input[type=range]{width:100%;accent-color:var(--accent)}
-  .switches{display:flex;gap:18px;margin-top:6px;font-size:13.5px;color:var(--ink-soft)}
-  .switches label{display:flex;align-items:center;gap:7px;cursor:pointer}
-  .switches input{accent-color:var(--accent)}
+  /* advice */
+  .advice{margin-top:22px;display:none}
+  .advice.on{display:block}
+  .advice-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;position:relative;overflow:hidden}
+  .advice-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .advice-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .advice-head .spark{width:34px;height:34px;border-radius:10px;background:var(--paper-2);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .advice-head h2{font-size:24px;margin:0}
+  .advice-sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 20px}
+  .advice-loading{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;padding:12px 0}
+  .adv-spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .advice-summary{font-size:16px;line-height:1.6;margin:0 0 22px}
+  .adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:680px){.adv-grid{grid-template-columns:1fr}}
+  .adv-block h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-family:"Inter";font-weight:700;margin:0 0 12px}
+  .adv-block ol{margin:0;padding-left:20px}
+  .adv-block ol li{font-size:14.5px;line-height:1.5;margin-bottom:9px}
+  .ingredient{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);margin-bottom:9px}
+  .ingredient b{display:block;font-size:14.5px;margin-bottom:3px;text-transform:capitalize}
+  .ingredient span{font-size:13px;color:var(--ink-soft);line-height:1.45}
+  .derm{margin-top:22px;padding:16px 18px;background:rgba(214,69,69,.07);border:1px solid rgba(214,69,69,.25);border-radius:14px;font-size:14px;line-height:1.55;display:flex;gap:12px}
+  .derm svg{flex:none;width:20px;height:20px;color:var(--severe);margin-top:1px}
 
-  .disc{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:0 0 40px;line-height:1.5}
+  .disc{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:34px 0 40px;line-height:1.5;max-width:640px;margin:0 auto}
 </style>
 </head>
 <body>
 
 <nav>
   <div class="container nav-inner">
-    <a class="logo" href="index.html"><span class="mark"></span>Lumen</a>
+    <a class="logo" href="index.html"><span class="mark"></span>Clarity Labs</a>
     <a class="back" href="index.html">← Back to home</a>
   </div>
 </nav>
@@ -103,7 +131,7 @@
   <div class="head">
     <div class="kick">Analyze</div>
     <h1>Drop a photo. <span class="it">See</span> what's there.</h1>
-    <p>Your image is analyzed privately and never stored. Adjust the thresholds any time to fine-tune the read.</p>
+    <p>Your image is analyzed privately and never stored. Clarity Labs surfaces every blemish it finds, rates the severity, and builds you a tailored plan.</p>
   </div>
 
   <div class="grid">
@@ -119,7 +147,7 @@
       <div class="stage" id="stage">
         <div class="holder">
           <canvas id="canvas"></canvas>
-          <div class="loading" id="loading"><div class="scanbar"></div>Analyzing…</div>
+          <div class="loading" id="loading"><div class="scanbar"></div><span class="lbl" id="loadLbl">Scanning skin…</span></div>
         </div>
         <div class="toolbar">
           <button class="btn primary" id="run">Analyze photo</button>
@@ -133,33 +161,67 @@
     <div class="card">
       <div class="panel-title">Detections found</div>
       <div class="total"><span id="total">—</span><small>total</small></div>
-      <div class="breakdown" id="breakdown">
-        <div class="empty-note">Upload a photo and press <b>Analyze</b> — results appear here, broken down by type.</div>
+
+      <div class="sev" id="sev">
+        <div class="row">
+          <span class="level" id="sevLevel">—</span>
+          <span class="score" id="sevScore"></span>
+        </div>
+        <div class="meter"><div class="marker" id="sevMarker"></div></div>
+        <div class="scale"><span>Clear</span><span>Mild</span><span>Moderate</span><span>Severe</span></div>
       </div>
 
-      <div class="controls">
-        <div class="lab">Confidence threshold <span id="confVal">50%</span></div>
-        <input type="range" id="conf" min="0" max="100" value="50" />
-        <div class="lab">Overlap threshold <span id="overVal">50%</span></div>
-        <input type="range" id="over" min="0" max="100" value="50" />
-        <div class="switches">
-          <label><input type="checkbox" id="showLabels" checked /> Labels</label>
-          <label><input type="checkbox" id="showConf" checked /> Confidence</label>
+      <div class="breakdown" id="breakdown">
+        <div class="empty-note">Upload a photo and press <b>Analyze</b> — every blemish it finds appears here, broken down by type.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI ADVICE -->
+  <div class="advice" id="advice">
+    <div class="advice-card">
+      <div class="advice-head">
+        <span class="spark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg></span>
+        <h2>Your personalized plan</h2>
+      </div>
+      <p class="advice-sub">Generated from what the scan found. Educational guidance — not a diagnosis.</p>
+
+      <div class="advice-loading" id="adviceLoading"><div class="adv-spin"></div>Building your plan…</div>
+
+      <div id="adviceBody" style="display:none">
+        <p class="advice-summary" id="advSummary"></p>
+        <div class="adv-grid">
+          <div class="adv-block">
+            <h3>Your routine</h3>
+            <ol id="advRoutine"></ol>
+          </div>
+          <div class="adv-block">
+            <h3>Ingredients to look for</h3>
+            <div id="advIngredients"></div>
+          </div>
+        </div>
+        <div class="derm" id="advDerm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4m0 4h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+          <span id="advDermText"></span>
         </div>
       </div>
     </div>
   </div>
 
-  <p class="disc">For informational purposes only — not a medical diagnosis. Consult a dermatologist for skin concerns.</p>
+  <p class="disc">Clarity Labs is for informational and tracking purposes only and does not provide a medical diagnosis or treatment. Product and ingredient suggestions are general education, not a prescription. For any skin concern, consult a licensed dermatologist.</p>
 </div>
 
 <script>
   const CLASS_COLORS={"blackheads":"#2E6E63","dark spot":"#7A5CC2","nodules":"#C24E6B","papules":"#E4903F","pustules":"#E8563A","whiteheads":"#4A8BB0"};
   const fallbackColor="#E8563A";
+  // Surface everything for the patient: low confidence, generous overlap so nothing is suppressed.
+  const CONFIDENCE=0, OVERLAP=60;
+  // Severity weighting — inflamed lesions count for more.
+  const WEIGHTS={nodules:4,pustules:3,papules:2,"dark spot":1.5,whiteheads:1,blackheads:1};
+
   const $=id=>document.getElementById(id);
   const drop=$("drop"),fileInput=$("file"),stage=$("stage"),canvas=$("canvas"),ctx=canvas.getContext("2d");
-  const loading=$("loading"),errBox=$("err"),confSlider=$("conf"),overSlider=$("over");
-  const confVal=$("confVal"),overVal=$("overVal"),showLabels=$("showLabels"),showConf=$("showConf");
+  const loading=$("loading"),loadLbl=$("loadLbl"),errBox=$("err");
   let currentImage=null,currentBase64=null,lastPredictions=[];
 
   drop.addEventListener("click",()=>fileInput.click());
@@ -175,7 +237,7 @@
       const dataUrl=ev.target.result;
       currentBase64=dataUrl.split(",")[1];
       const img=new Image();
-      img.onload=()=>{currentImage=img;lastPredictions=[];drop.style.display="none";stage.style.display="block";draw();resetSummary()};
+      img.onload=()=>{currentImage=img;lastPredictions=[];drop.style.display="none";stage.style.display="block";draw();resetResults()};
       img.src=dataUrl;
     };
     reader.readAsDataURL(file);
@@ -190,49 +252,106 @@
       const color=CLASS_COLORS[p.class]||fallbackColor;
       const x=p.x-p.width/2,y=p.y-p.height/2;
       ctx.lineWidth=2.4*scale;ctx.strokeStyle=color;ctx.strokeRect(x,y,p.width,p.height);
-      if(showLabels.checked){
-        let text=p.class;if(showConf.checked)text+="  "+Math.round(p.confidence*100)+"%";
-        ctx.font=`600 ${13*scale}px Inter, sans-serif`;
-        const padX=6*scale,h=20*scale,w=ctx.measureText(text).width+padX*2;
-        let ty=y-h;if(ty<0)ty=y;
-        ctx.fillStyle=color;ctx.fillRect(x,ty,w,h);
-        ctx.fillStyle="#fff";ctx.textBaseline="middle";ctx.fillText(text,x+padX,ty+h/2);
-      }
+      const text=p.class+"  "+Math.round(p.confidence*100)+"%";
+      ctx.font=`600 ${13*scale}px Inter, sans-serif`;
+      const padX=6*scale,h=20*scale,w=ctx.measureText(text).width+padX*2;
+      let ty=y-h;if(ty<0)ty=y;
+      ctx.fillStyle=color;ctx.fillRect(x,ty,w,h);
+      ctx.fillStyle="#fff";ctx.textBaseline="middle";ctx.fillText(text,x+padX,ty+h/2);
     }
   }
-  [showLabels,showConf].forEach(el=>el.addEventListener("change",draw));
-  confSlider.addEventListener("input",()=>confVal.textContent=confSlider.value+"%");
-  overSlider.addEventListener("input",()=>overVal.textContent=overSlider.value+"%");
 
   $("run").addEventListener("click",analyze);
   $("reset").addEventListener("click",()=>{
     currentImage=null;currentBase64=null;lastPredictions=[];
-    stage.style.display="none";drop.style.display="block";fileInput.value="";resetSummary();
+    stage.style.display="none";drop.style.display="block";fileInput.value="";resetResults();
   });
 
   async function analyze(){
     if(!currentBase64)return;
-    hideErr();loading.classList.add("on");$("run").disabled=true;
+    hideErr();loading.classList.add("on");loadLbl.textContent="Scanning skin…";$("run").disabled=true;
     try{
       const res=await fetch("/api/detect",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({image:currentBase64,confidence:+confSlider.value,overlap:+overSlider.value})});
+        body:JSON.stringify({image:currentBase64,confidence:CONFIDENCE,overlap:OVERLAP})});
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"Detection failed");
-      lastPredictions=data.predictions||[];draw();updateSummary(lastPredictions);
+      lastPredictions=data.predictions||[];draw();
+      const counts=countByClass(lastPredictions);
+      const sev=computeSeverity(counts);
+      updateResults(lastPredictions,counts,sev);
+      if(lastPredictions.length){getAdvice(counts,lastPredictions.length,sev);}
     }catch(e){showErr(e.message)}
     finally{loading.classList.remove("on");$("run").disabled=false}
   }
 
-  function resetSummary(){$("total").textContent="—";$("breakdown").innerHTML='<div class="empty-note">Press <b>Analyze</b> to run detection.</div>'}
-  function updateSummary(preds){
+  function countByClass(preds){const c={};for(const p of preds)c[p.class]=(c[p.class]||0)+1;return c}
+
+  function computeSeverity(counts){
+    let score=0;for(const [cls,n] of Object.entries(counts))score+=(WEIGHTS[cls]||1)*n;
+    let level,pct;
+    if(score===0){level="Clear";pct=2}
+    else if(score<=6){level="Mild";pct=22}
+    else if(score<=16){level="Moderate";pct=58}
+    else{level="Severe";pct=92}
+    return {score:Math.round(score),level,pct};
+  }
+
+  function resetResults(){
+    $("total").textContent="—";
+    $("sev").classList.remove("on");
+    $("advice").classList.remove("on");
+    $("breakdown").innerHTML='<div class="empty-note">Press <b>Analyze</b> to run detection.</div>';
+  }
+
+  function updateResults(preds,counts,sev){
     $("total").textContent=preds.length;
-    if(!preds.length){$("breakdown").innerHTML='<div class="empty-note">No blemishes detected above the current confidence threshold. Try lowering it.</div>';return}
-    const counts={};for(const p of preds)counts[p.class]=(counts[p.class]||0)+1;
+    if(!preds.length){
+      $("sev").classList.remove("on");
+      $("breakdown").innerHTML='<div class="empty-note">No blemishes detected. If you expected some, try a clearer, closer, well-lit photo.</div>';
+      return;
+    }
+    // severity
+    $("sev").classList.add("on");
+    $("sevLevel").textContent=sev.level;
+    $("sevScore").textContent="severity score "+sev.score;
+    $("sevMarker").style.left=sev.pct+"%";
+    // breakdown
     $("breakdown").innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([cls,n])=>{
       const color=CLASS_COLORS[cls]||fallbackColor;
       return `<div class="chip"><span class="dot" style="background:${color}"></span><span class="name">${cls}</span><span class="count">${n}</span></div>`;
     }).join("");
   }
+
+  async function getAdvice(counts,total,sev){
+    $("advice").classList.add("on");
+    $("adviceLoading").style.display="flex";
+    $("adviceBody").style.display="none";
+    try{
+      const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({counts,total,severity:sev.level,score:sev.score})});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||"Could not generate advice");
+      renderAdvice(data);
+    }catch(e){
+      $("adviceLoading").style.display="none";
+      $("adviceBody").style.display="block";
+      $("advSummary").textContent="Couldn't generate a plan right now ("+e.message+"). Your detection results above are still accurate.";
+      $("advRoutine").innerHTML="";$("advIngredients").innerHTML="";$("advDerm").style.display="none";
+    }
+  }
+
+  function renderAdvice(d){
+    $("adviceLoading").style.display="none";
+    $("adviceBody").style.display="block";
+    $("advSummary").textContent=d.summary||"";
+    $("advRoutine").innerHTML=(d.routine||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+    $("advIngredients").innerHTML=(d.ingredients||[]).map(i=>
+      `<div class="ingredient"><b>${escapeHtml(i.name||"")}</b><span>${escapeHtml(i.why||"")}</span></div>`).join("");
+    if(d.derm){$("advDerm").style.display="flex";$("advDermText").textContent=d.derm;}
+    else $("advDerm").style.display="none";
+  }
+
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
   function showErr(m){errBox.textContent=m;errBox.classList.add("on")}
   function hideErr(){errBox.classList.remove("on")}
 </script>
