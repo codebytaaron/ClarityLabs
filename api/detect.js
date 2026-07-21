@@ -1,9 +1,73 @@
 // Vercel serverless function — proxies to Roboflow so the API key stays server-side.
-// Set ROBOFLOW_API_KEY in your Vercel project (Settings → Environment Variables).
+//
+// Required env var (Vercel → Settings → Environment Variables):
+//   ROBOFLOW_API_KEY   your Roboflow private API key (app.roboflow.com/settings/api)
+//
+// By default this calls the trained model directly, which returns clean detection
+// boxes and honours the confidence/overlap sliders. Set USE_WORKFLOW=1 to route
+// through the Roboflow Workflow instead (sliders won't apply); the response is
+// parsed defensively so it works either way.
 
-const WORKSPACE_MODEL = "acne-detection-zukbx-nvog3"; // model id
-const VERSION = "1";
 const HOST = "https://serverless.roboflow.com";
+const WORKSPACE = "teddys-workspace-gkt3y";
+const MODEL = "acne-detection-zukbx-nvog3"; // project slug
+const VERSION = "1";
+const WORKFLOW_ID = "acne-detection-vacne-detection-zukbx-nvog3-1-yolo26n-t1-logic";
+
+// Recursively find the first array of Roboflow-style detections in a response,
+// so we don't hard-code the workflow's output names.
+function extractPredictions(node) {
+  if (!node || typeof node !== "object") return null;
+  if (Array.isArray(node)) {
+    if (node.length && looksLikeDetection(node[0])) return node;
+    for (const item of node) {
+      const found = extractPredictions(item);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (Array.isArray(node.predictions) && (!node.predictions.length || looksLikeDetection(node.predictions[0]))) {
+    return node.predictions;
+  }
+  for (const key of Object.keys(node)) {
+    const found = extractPredictions(node[key]);
+    if (found) return found;
+  }
+  return null;
+}
+
+function looksLikeDetection(o) {
+  return o && typeof o === "object" &&
+    typeof o.x === "number" && typeof o.y === "number" &&
+    typeof o.width === "number" && typeof o.height === "number";
+}
+
+async function callModel(apiKey, image, confidence, overlap) {
+  const params = new URLSearchParams({
+    api_key: apiKey,
+    confidence: String(confidence),
+    overlap: String(overlap),
+    format: "json"
+  });
+  const r = await fetch(`${HOST}/${MODEL}/${VERSION}?${params}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: image // base64 string, no data: prefix
+  });
+  return r;
+}
+
+async function callWorkflow(apiKey, image) {
+  const r = await fetch(`${HOST}/${WORKSPACE}/workflows/${WORKFLOW_ID}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      api_key: apiKey,
+      inputs: { image: { type: "base64", value: image } }
+    })
+  });
+  return r;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -24,32 +88,23 @@ export default async function handler(req, res) {
       return;
     }
 
-    const params = new URLSearchParams({
-      api_key: apiKey,
-      confidence: String(confidence),
-      overlap: String(overlap),
-      format: "json"
-    });
+    const useWorkflow = process.env.USE_WORKFLOW === "1";
+    const rfRes = useWorkflow
+      ? await callWorkflow(apiKey, image)
+      : await callModel(apiKey, image, confidence, overlap);
 
-    const rfRes = await fetch(`${HOST}/${WORKSPACE_MODEL}/${VERSION}?${params.toString()}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: image // base64 string (no data: prefix)
-    });
-
-    const text = await rfRes.text();
+    const textBody = await rfRes.text();
     let data;
-    try { data = JSON.parse(text); } catch { data = null; }
+    try { data = JSON.parse(textBody); } catch { data = null; }
 
     if (!rfRes.ok) {
-      res.status(rfRes.status).json({ error: (data && (data.message || data.error)) || `Roboflow error (${rfRes.status})` });
+      const msg = (data && (data.message || data.error)) || `Roboflow error (${rfRes.status})`;
+      res.status(rfRes.status).json({ error: msg });
       return;
     }
 
-    res.status(200).json({
-      predictions: (data && data.predictions) || [],
-      image: (data && data.image) || null
-    });
+    const predictions = extractPredictions(data) || [];
+    res.status(200).json({ predictions });
   } catch (e) {
     res.status(500).json({ error: e.message || "Unexpected server error" });
   }
