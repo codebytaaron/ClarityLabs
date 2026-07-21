@@ -8,19 +8,27 @@ const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = "llama-3.3-70b-versatile";
 
 const SYSTEM_PROMPT = `You are a friendly, evidence-based skincare guide inside an acne-detection app.
-You are given the blemish types and counts an AI vision model found in a user's photo, plus an overall severity.
+You receive the blemish types and counts an AI vision model found in a user's photo, plus an overall severity.
 Give practical, over-the-counter guidance a general audience can act on. You are NOT a doctor: never diagnose,
-never prescribe prescription-only medication, and always keep an encouraging, non-alarming tone.
+never prescribe prescription-only medication, and keep an encouraging, non-alarming tone.
+
+Recommend REAL, widely-available over-the-counter products, split into three price tiers. Use accurate,
+realistic US prices. Tailor every pick to the blemish types actually found (e.g. salicylic acid for
+blackheads/whiteheads, benzoyl peroxide for pustules/papules, adapalene for comedonal acne, niacinamide for
+redness, azelaic acid or vitamin C for dark spots, and always a daily SPF).
 
 Respond ONLY with a JSON object in exactly this shape:
 {
   "summary": "2-3 sentence plain-language read of what was found and what it means.",
-  "routine": ["3 to 5 short, ordered steps (AM/PM, cleanse, treat, moisturize, SPF, etc.), tailored to the blemish types found"],
-  "ingredients": [{"name": "ingredient", "why": "one short sentence on why it helps these specific blemishes"}],
-  "derm": "one sentence on when they should see a dermatologist based on the severity"
+  "routine": ["3 to 5 short ordered steps (cleanse, treat, moisturize, SPF, etc.) tailored to the findings"],
+  "products": {
+    "budget": [{"name":"Brand + product","targets":"which blemish type it helps","price":"$X","why":"one short sentence"}],
+    "mid": [{"name":"...","targets":"...","price":"$X","why":"..."}],
+    "premium": [{"name":"...","targets":"...","price":"$X","why":"..."}]
+  },
+  "derm": "one sentence on when to see a dermatologist given the severity"
 }
-Pick ingredients relevant to the detected types (e.g. salicylic acid for blackheads/whiteheads, benzoyl peroxide for
-pustules/papules, adapalene for comedonal acne, niacinamide for redness, azelaic acid for dark spots, SPF always).
+Give 2 products per tier. Budget = drugstore, roughly under $20. Mid = roughly $20-45. Premium = roughly $45+.
 Keep every string concise. No markdown, no text outside the JSON.`;
 
 export default async function handler(req, res) {
@@ -43,7 +51,7 @@ export default async function handler(req, res) {
 - Total blemishes: ${total}
 - Breakdown: ${breakdown}
 - Overall severity: ${severity} (score ${score})
-Give the JSON plan.`;
+Give the JSON plan with tiered product recommendations.`;
 
     const rf = await fetch(GROQ_URL, {
       method: "POST",
@@ -74,10 +82,13 @@ Give the JSON plan.`;
       return;
     }
 
+    const products = plan.products && typeof plan.products === "object" ? plan.products : {};
+    const tier = t => Array.isArray(products[t]) ? products[t] : [];
+
     res.status(200).json({
       summary: plan.summary || "",
       routine: Array.isArray(plan.routine) ? plan.routine : [],
-      ingredients: Array.isArray(plan.ingredients) ? plan.ingredients : [],
+      products: { budget: tier("budget"), mid: tier("mid"), premium: tier("premium") },
       derm: plan.derm || ""
     });
   } catch (e) {

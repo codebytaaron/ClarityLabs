@@ -103,16 +103,29 @@
   .advice-loading{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;padding:12px 0}
   .adv-spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .advice-summary{font-size:16px;line-height:1.6;margin:0 0 22px}
-  .adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:680px){.adv-grid{grid-template-columns:1fr}}
-  .adv-block h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-family:"Inter";font-weight:700;margin:0 0 12px}
+  .adv-btn{display:inline-flex;align-items:center;gap:10px;margin-top:4px}
+  .advice-summary{font-size:16px;line-height:1.6;margin:0 0 24px}
+  .adv-sectitle{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-family:"Inter";font-weight:700;margin:24px 0 12px}
   .adv-block ol{margin:0;padding-left:20px}
   .adv-block ol li{font-size:14.5px;line-height:1.5;margin-bottom:9px}
-  .ingredient{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);margin-bottom:9px}
-  .ingredient b{display:block;font-size:14.5px;margin-bottom:3px;text-transform:capitalize}
-  .ingredient span{font-size:13px;color:var(--ink-soft);line-height:1.45}
-  .derm{margin-top:22px;padding:16px 18px;background:rgba(214,69,69,.07);border:1px solid rgba(214,69,69,.25);border-radius:14px;font-size:14px;line-height:1.55;display:flex;gap:12px}
+
+  /* product price tiers */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.tiers{grid-template-columns:1fr}}
+  .tier{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--paper)}
+  .tier-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .tier-head .name{font-family:"Fraunces";font-size:17px}
+  .tier-head .price{font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--accent-2)}
+  .tier.mid .tier-head .price{color:var(--moderate)}
+  .tier.premium .tier-head .price{color:var(--accent)}
+  .prod{padding:11px 0;border-top:1px solid var(--line)}
+  .prod:first-of-type{border-top:none}
+  .prod .pn{font-size:14px;font-weight:600;line-height:1.3}
+  .prod .pp{font-family:"Fraunces";font-size:14px;color:var(--ink);float:right;margin-left:8px}
+  .prod .pt{font-size:12px;color:var(--accent);font-weight:600;text-transform:capitalize;margin:3px 0}
+  .prod .pw{font-size:12.5px;color:var(--ink-soft);line-height:1.45}
+
+  .derm{margin-top:24px;padding:16px 18px;background:rgba(214,69,69,.07);border:1px solid rgba(214,69,69,.25);border-radius:14px;font-size:14px;line-height:1.55;display:flex;gap:12px}
   .derm svg{flex:none;width:20px;height:20px;color:var(--severe);margin-top:1px}
 
   .disc{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:34px 0 40px;line-height:1.5;max-width:640px;margin:0 auto}
@@ -184,22 +197,27 @@
         <span class="spark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg></span>
         <h2>Your personalized plan</h2>
       </div>
-      <p class="advice-sub">Generated from what the scan found. Educational guidance — not a diagnosis.</p>
+      <p class="advice-sub">Based on exactly what the scan found — a routine plus product picks at every budget. Educational guidance, not a diagnosis.</p>
 
-      <div class="advice-loading" id="adviceLoading"><div class="adv-spin"></div>Building your plan…</div>
+      <button class="btn primary adv-btn" id="getAdvice">✦ Get my personalized plan</button>
+
+      <div class="advice-loading" id="adviceLoading" style="display:none"><div class="adv-spin"></div>Building your plan…</div>
 
       <div id="adviceBody" style="display:none">
         <p class="advice-summary" id="advSummary"></p>
-        <div class="adv-grid">
-          <div class="adv-block">
-            <h3>Your routine</h3>
-            <ol id="advRoutine"></ol>
-          </div>
-          <div class="adv-block">
-            <h3>Ingredients to look for</h3>
-            <div id="advIngredients"></div>
-          </div>
+
+        <div class="adv-block">
+          <div class="adv-sectitle">Your routine</div>
+          <ol id="advRoutine"></ol>
         </div>
+
+        <div class="adv-sectitle">Products by budget</div>
+        <div class="tiers">
+          <div class="tier budget"><div class="tier-head"><span class="name">Budget</span><span class="price">$</span></div><div id="tierBudget"></div></div>
+          <div class="tier mid"><div class="tier-head"><span class="name">Mid-range</span><span class="price">$$</span></div><div id="tierMid"></div></div>
+          <div class="tier premium"><div class="tier-head"><span class="name">Premium</span><span class="price">$$$</span></div><div id="tierPremium"></div></div>
+        </div>
+
         <div class="derm" id="advDerm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4m0 4h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
           <span id="advDermText"></span>
@@ -214,15 +232,16 @@
 <script>
   const CLASS_COLORS={"blackheads":"#2E6E63","dark spot":"#7A5CC2","nodules":"#C24E6B","papules":"#E4903F","pustules":"#E8563A","whiteheads":"#4A8BB0"};
   const fallbackColor="#E8563A";
-  // Surface everything for the patient: low confidence, generous overlap so nothing is suppressed.
-  const CONFIDENCE=0, OVERLAP=60;
+  // Surface blemishes for the patient while keeping labels trustworthy:
+  // a low (not zero) confidence floor cuts obvious noise; generous overlap keeps real clustered spots.
+  const CONFIDENCE=20, OVERLAP=60;
   // Severity weighting — inflamed lesions count for more.
   const WEIGHTS={nodules:4,pustules:3,papules:2,"dark spot":1.5,whiteheads:1,blackheads:1};
 
   const $=id=>document.getElementById(id);
   const drop=$("drop"),fileInput=$("file"),stage=$("stage"),canvas=$("canvas"),ctx=canvas.getContext("2d");
   const loading=$("loading"),loadLbl=$("loadLbl"),errBox=$("err");
-  let currentImage=null,currentBase64=null,lastPredictions=[];
+  let currentImage=null,currentBase64=null,lastPredictions=[],lastCounts={},lastSev=null;
 
   drop.addEventListener("click",()=>fileInput.click());
   drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
@@ -276,10 +295,9 @@
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"Detection failed");
       lastPredictions=data.predictions||[];draw();
-      const counts=countByClass(lastPredictions);
-      const sev=computeSeverity(counts);
-      updateResults(lastPredictions,counts,sev);
-      if(lastPredictions.length){getAdvice(counts,lastPredictions.length,sev);}
+      lastCounts=countByClass(lastPredictions);
+      lastSev=computeSeverity(lastCounts);
+      updateResults(lastPredictions,lastCounts,lastSev);
     }catch(e){showErr(e.message)}
     finally{loading.classList.remove("on");$("run").disabled=false}
   }
@@ -300,13 +318,23 @@
     $("total").textContent="—";
     $("sev").classList.remove("on");
     $("advice").classList.remove("on");
+    resetAdviceCard();
     $("breakdown").innerHTML='<div class="empty-note">Press <b>Analyze</b> to run detection.</div>';
+  }
+
+  function resetAdviceCard(){
+    $("getAdvice").style.display="inline-flex";
+    $("getAdvice").disabled=false;
+    $("getAdvice").textContent="✦ Get my personalized plan";
+    $("adviceLoading").style.display="none";
+    $("adviceBody").style.display="none";
   }
 
   function updateResults(preds,counts,sev){
     $("total").textContent=preds.length;
     if(!preds.length){
       $("sev").classList.remove("on");
+      $("advice").classList.remove("on");
       $("breakdown").innerHTML='<div class="empty-note">No blemishes detected. If you expected some, try a clearer, closer, well-lit photo.</div>';
       return;
     }
@@ -320,23 +348,29 @@
       const color=CLASS_COLORS[cls]||fallbackColor;
       return `<div class="chip"><span class="dot" style="background:${color}"></span><span class="name">${cls}</span><span class="count">${n}</span></div>`;
     }).join("");
+    // reveal the advice card with its button (advice only runs on request)
+    $("advice").classList.add("on");
+    resetAdviceCard();
   }
 
-  async function getAdvice(counts,total,sev){
-    $("advice").classList.add("on");
+  $("getAdvice").addEventListener("click",getAdvice);
+
+  async function getAdvice(){
+    if(!lastPredictions.length||!lastSev)return;
+    $("getAdvice").style.display="none";
     $("adviceLoading").style.display="flex";
     $("adviceBody").style.display="none";
     try{
       const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({counts,total,severity:sev.level,score:sev.score})});
+        body:JSON.stringify({counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score})});
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"Could not generate advice");
       renderAdvice(data);
     }catch(e){
       $("adviceLoading").style.display="none";
-      $("adviceBody").style.display="block";
-      $("advSummary").textContent="Couldn't generate a plan right now ("+e.message+"). Your detection results above are still accurate.";
-      $("advRoutine").innerHTML="";$("advIngredients").innerHTML="";$("advDerm").style.display="none";
+      $("getAdvice").style.display="inline-flex";
+      $("getAdvice").textContent="Try again";
+      showErr("Couldn't build a plan: "+e.message);
     }
   }
 
@@ -345,10 +379,23 @@
     $("adviceBody").style.display="block";
     $("advSummary").textContent=d.summary||"";
     $("advRoutine").innerHTML=(d.routine||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join("");
-    $("advIngredients").innerHTML=(d.ingredients||[]).map(i=>
-      `<div class="ingredient"><b>${escapeHtml(i.name||"")}</b><span>${escapeHtml(i.why||"")}</span></div>`).join("");
+    const p=d.products||{};
+    renderTier("tierBudget",p.budget);
+    renderTier("tierMid",p.mid);
+    renderTier("tierPremium",p.premium);
     if(d.derm){$("advDerm").style.display="flex";$("advDermText").textContent=d.derm;}
     else $("advDerm").style.display="none";
+  }
+
+  function renderTier(id,list){
+    const items=Array.isArray(list)?list:[];
+    $(id).innerHTML=items.length?items.map(pr=>
+      `<div class="prod">
+        <div class="pn">${escapeHtml(pr.name||"")}<span class="pp">${escapeHtml(pr.price||"")}</span></div>
+        <div class="pt">${escapeHtml(pr.targets||"")}</div>
+        <div class="pw">${escapeHtml(pr.why||"")}</div>
+      </div>`).join("")
+      :'<div class="prod"><div class="pw">No pick for this tier.</div></div>';
   }
 
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
