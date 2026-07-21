@@ -7,7 +7,9 @@ nodules, papules, pustules, whiteheads).
 
 ## How it works
 
-- `index.html` — the whole UI (upload, canvas overlay, confidence/overlap
+- `index.html` — **Lumen** landing page: editorial hero, animated live-scan
+  visual, scroll reveals, model stats, and a "Launch Tool" CTA.
+- `app.html` — the detector (upload, canvas overlay, confidence/overlap
   sliders, per-class results). No build step.
 - `api/detect.js` — a Vercel serverless function that calls Roboflow so the
   **API key stays server-side** and is never exposed in the browser.

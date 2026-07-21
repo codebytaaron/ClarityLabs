@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lumen — Analyze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;
+    --line:#DAD3C4;--accent:#E8563A;--accent-2:#2E6E63;--card:#FBF9F4;
+    --radius:20px;--ease:cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"Inter",-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.045;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  h1,h2,h3,.serif{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.02em}
+  a{color:inherit;text-decoration:none}
+  .container{max-width:1160px;margin:0 auto;padding:0 28px}
+
+  nav{border-bottom:1px solid var(--line);background:rgba(242,238,230,.8);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:70px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;font-weight:500}
+  .logo .mark{width:24px;height:24px;border-radius:7px;background:var(--ink);position:relative;overflow:hidden}
+  .logo .mark::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
+  .logo .mark::after{content:"";position:absolute;left:5px;right:5px;height:1.5px;background:var(--accent);top:50%;box-shadow:0 0 8px var(--accent);animation:scanmark 2.4s var(--ease) infinite}
+  @keyframes scanmark{0%,100%{top:20%}50%{top:78%}}
+  .back{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink-soft);transition:color .2s}
+  .back:hover{color:var(--ink)}
+
+  .head{padding:44px 0 26px}
+  .head .kick{font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  .head h1{font-size:clamp(30px,4.2vw,46px);line-height:1.02;margin:0 0 10px}
+  .head h1 .it{font-style:italic;color:var(--accent)}
+  .head p{color:var(--ink-soft);font-size:16px;margin:0;max-width:520px;line-height:1.55}
+
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;padding-bottom:70px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+
+  .drop{border:2px dashed var(--line);border-radius:16px;padding:56px 24px;text-align:center;cursor:pointer;transition:border-color .25s,background .25s}
+  .drop.drag{border-color:var(--accent);background:rgba(232,86,58,.05)}
+  .drop .ic{width:54px;height:54px;margin:0 auto 16px;border-radius:14px;background:var(--paper-2);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .drop .ic svg{width:26px;height:26px}
+  .drop strong{display:block;font-family:"Fraunces";font-size:20px;margin-bottom:6px}
+  .drop span{color:var(--ink-soft);font-size:13.5px}
+
+  .stage{display:none}
+  .holder{position:relative;border-radius:16px;overflow:hidden;background:#141019;display:flex;align-items:center;justify-content:center;min-height:280px}
+  canvas{max-width:100%;height:auto;display:block}
+  .loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:12px;background:rgba(20,16,25,.62);color:#fff;font-size:14px;font-weight:500;flex-direction:column}
+  .loading.on{display:flex}
+  .scanbar{width:60%;height:3px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;position:relative}
+  .scanbar::after{content:"";position:absolute;left:-40%;top:0;bottom:0;width:40%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:load 1.1s infinite}
+  @keyframes load{to{left:110%}}
+
+  .toolbar{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .btn{border:none;border-radius:12px;padding:14px 22px;font-size:14.5px;font-weight:600;cursor:pointer;transition:transform .1s,background .25s,opacity .2s;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--ink);color:var(--paper)}
+  .btn.primary:hover{background:var(--accent)}
+  .btn.ghost{background:var(--paper-2);color:var(--ink)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .err{background:#fdecea;border:1px solid #f5c6c0;color:#a02a1a;padding:11px 14px;border-radius:11px;font-size:13.5px;margin-top:14px;display:none}
+  .err.on{display:block}
+
+  .panel-title{font-family:"Fraunces";font-size:15px;color:var(--ink-soft);font-weight:500;letter-spacing:.02em}
+  .total{font-family:"Fraunces";font-size:64px;line-height:1;letter-spacing:-.03em;margin-top:6px}
+  .total small{font-size:15px;font-weight:500;color:var(--ink-soft);font-family:"Inter";margin-left:10px}
+  .breakdown{margin-top:22px;display:flex;flex-direction:column;gap:9px}
+  .chip{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--paper);animation:pop .4s var(--ease)}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}}
+  .chip .dot{width:13px;height:13px;border-radius:5px;flex:none}
+  .chip .name{text-transform:capitalize;flex:1;font-weight:500;font-size:14.5px}
+  .chip .count{font-family:"Fraunces";font-size:20px}
+  .empty-note{color:var(--ink-soft);font-size:14px;line-height:1.5;padding:6px 0}
+
+  .controls{margin-top:26px;border-top:1px solid var(--line);padding-top:22px}
+  .controls .lab{font-size:13.5px;font-weight:600;display:flex;justify-content:space-between;margin:0 0 8px}
+  .controls .lab span{color:var(--accent);font-variant-numeric:tabular-nums}
+  .controls .lab+input{margin-bottom:18px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .switches{display:flex;gap:18px;margin-top:6px;font-size:13.5px;color:var(--ink-soft)}
+  .switches label{display:flex;align-items:center;gap:7px;cursor:pointer}
+  .switches input{accent-color:var(--accent)}
+
+  .disc{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:0 0 40px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="logo" href="index.html"><span class="mark"></span>Lumen</a>
+    <a class="back" href="index.html">← Back to home</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="head">
+    <div class="kick">Analyze</div>
+    <h1>Drop a photo. <span class="it">See</span> what's there.</h1>
+    <p>Your image is analyzed privately and never stored. Adjust the thresholds any time to fine-tune the read.</p>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div class="card">
+      <div id="drop" class="drop">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
+        <strong>Drop a photo or click to upload</strong>
+        <span>JPG or PNG · analyzed privately, not stored</span>
+      </div>
+      <input id="file" type="file" accept="image/*" hidden />
+
+      <div class="stage" id="stage">
+        <div class="holder">
+          <canvas id="canvas"></canvas>
+          <div class="loading" id="loading"><div class="scanbar"></div>Analyzing…</div>
+        </div>
+        <div class="toolbar">
+          <button class="btn primary" id="run">Analyze photo</button>
+          <button class="btn ghost" id="reset">Choose another</button>
+        </div>
+        <div class="err" id="err"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card">
+      <div class="panel-title">Detections found</div>
+      <div class="total"><span id="total">—</span><small>total</small></div>
+      <div class="breakdown" id="breakdown">
+        <div class="empty-note">Upload a photo and press <b>Analyze</b> — results appear here, broken down by type.</div>
+      </div>
+
+      <div class="controls">
+        <div class="lab">Confidence threshold <span id="confVal">50%</span></div>
+        <input type="range" id="conf" min="0" max="100" value="50" />
+        <div class="lab">Overlap threshold <span id="overVal">50%</span></div>
+        <input type="range" id="over" min="0" max="100" value="50" />
+        <div class="switches">
+          <label><input type="checkbox" id="showLabels" checked /> Labels</label>
+          <label><input type="checkbox" id="showConf" checked /> Confidence</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="disc">For informational purposes only — not a medical diagnosis. Consult a dermatologist for skin concerns.</p>
+</div>
+
+<script>
+  const CLASS_COLORS={"blackheads":"#2E6E63","dark spot":"#7A5CC2","nodules":"#C24E6B","papules":"#E4903F","pustules":"#E8563A","whiteheads":"#4A8BB0"};
+  const fallbackColor="#E8563A";
+  const $=id=>document.getElementById(id);
+  const drop=$("drop"),fileInput=$("file"),stage=$("stage"),canvas=$("canvas"),ctx=canvas.getContext("2d");
+  const loading=$("loading"),errBox=$("err"),confSlider=$("conf"),overSlider=$("over");
+  const confVal=$("confVal"),overVal=$("overVal"),showLabels=$("showLabels"),showConf=$("showConf");
+  let currentImage=null,currentBase64=null,lastPredictions=[];
+
+  drop.addEventListener("click",()=>fileInput.click());
+  drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
+  drop.addEventListener("dragleave",()=>drop.classList.remove("drag"));
+  drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("drag");if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0])});
+  fileInput.addEventListener("change",e=>{if(e.target.files[0])loadFile(e.target.files[0])});
+
+  function loadFile(file){
+    hideErr();
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const dataUrl=ev.target.result;
+      currentBase64=dataUrl.split(",")[1];
+      const img=new Image();
+      img.onload=()=>{currentImage=img;lastPredictions=[];drop.style.display="none";stage.style.display="block";draw();resetSummary()};
+      img.src=dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function draw(){
+    if(!currentImage)return;
+    canvas.width=currentImage.naturalWidth;canvas.height=currentImage.naturalHeight;
+    ctx.drawImage(currentImage,0,0);
+    const scale=Math.max(1,canvas.width/640);
+    for(const p of lastPredictions){
+      const color=CLASS_COLORS[p.class]||fallbackColor;
+      const x=p.x-p.width/2,y=p.y-p.height/2;
+      ctx.lineWidth=2.4*scale;ctx.strokeStyle=color;ctx.strokeRect(x,y,p.width,p.height);
+      if(showLabels.checked){
+        let text=p.class;if(showConf.checked)text+="  "+Math.round(p.confidence*100)+"%";
+        ctx.font=`600 ${13*scale}px Inter, sans-serif`;
+        const padX=6*scale,h=20*scale,w=ctx.measureText(text).width+padX*2;
+        let ty=y-h;if(ty<0)ty=y;
+        ctx.fillStyle=color;ctx.fillRect(x,ty,w,h);
+        ctx.fillStyle="#fff";ctx.textBaseline="middle";ctx.fillText(text,x+padX,ty+h/2);
+      }
+    }
+  }
+  [showLabels,showConf].forEach(el=>el.addEventListener("change",draw));
+  confSlider.addEventListener("input",()=>confVal.textContent=confSlider.value+"%");
+  overSlider.addEventListener("input",()=>overVal.textContent=overSlider.value+"%");
+
+  $("run").addEventListener("click",analyze);
+  $("reset").addEventListener("click",()=>{
+    currentImage=null;currentBase64=null;lastPredictions=[];
+    stage.style.display="none";drop.style.display="block";fileInput.value="";resetSummary();
+  });
+
+  async function analyze(){
+    if(!currentBase64)return;
+    hideErr();loading.classList.add("on");$("run").disabled=true;
+    try{
+      const res=await fetch("/api/detect",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({image:currentBase64,confidence:+confSlider.value,overlap:+overSlider.value})});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||"Detection failed");
+      lastPredictions=data.predictions||[];draw();updateSummary(lastPredictions);
+    }catch(e){showErr(e.message)}
+    finally{loading.classList.remove("on");$("run").disabled=false}
+  }
+
+  function resetSummary(){$("total").textContent="—";$("breakdown").innerHTML='<div class="empty-note">Press <b>Analyze</b> to run detection.</div>'}
+  function updateSummary(preds){
+    $("total").textContent=preds.length;
+    if(!preds.length){$("breakdown").innerHTML='<div class="empty-note">No blemishes detected above the current confidence threshold. Try lowering it.</div>';return}
+    const counts={};for(const p of preds)counts[p.class]=(counts[p.class]||0)+1;
+    $("breakdown").innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([cls,n])=>{
+      const color=CLASS_COLORS[cls]||fallbackColor;
+      return `<div class="chip"><span class="dot" style="background:${color}"></span><span class="name">${cls}</span><span class="count">${n}</span></div>`;
+    }).join("");
+  }
+  function showErr(m){errBox.textContent=m;errBox.classList.add("on")}
+  function hideErr(){errBox.classList.remove("on")}
+</script>
+</body>
+</html>
