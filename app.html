@@ -148,9 +148,116 @@
   .derm svg{flex:none;width:20px;height:20px;color:var(--severe);margin-top:1px}
 
   .disc{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:34px 0 40px;line-height:1.5;max-width:640px;margin:0 auto}
+
+  /* ---------- ONBOARDING ---------- */
+  .app-hidden{display:none!important}
+  #onboard{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(120% 90% at 50% 0%,#FBE9DF 0%,var(--paper) 55%)}
+  .ob-card{width:100%;max-width:540px;text-align:center;position:relative}
+  .ob-progress{display:flex;gap:7px;justify-content:center;margin-bottom:38px}
+  .ob-progress i{width:34px;height:5px;border-radius:99px;background:var(--line);transition:background .35s,transform .35s}
+  .ob-progress i.on{background:var(--accent)}
+  .ob-progress i.done{background:var(--accent-2)}
+  .ob-step{display:none}
+  .ob-step.active{display:block}
+  .ob-emoji{font-size:44px;display:inline-block;animation:bounceIn .6s var(--ease) both}
+  .ob-q{font-family:"Fraunces";font-size:clamp(28px,5vw,40px);line-height:1.08;margin:16px 0 10px;letter-spacing:-.02em}
+  .ob-q .word{display:inline-block;animation:bounceUp .5s var(--ease) both}
+  .ob-q .hl{color:var(--accent);font-style:italic}
+  .ob-sub{color:var(--ink-soft);font-size:15.5px;margin:0 0 30px;line-height:1.5}
+  @keyframes bounceIn{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+  @keyframes bounceUp{0%{transform:translateY(26px) scale(.9);opacity:0}70%{transform:translateY(-6px) scale(1.02)}100%{transform:translateY(0) scale(1);opacity:1}}
+  @keyframes floatEmoji{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .ob-emoji.float{animation:bounceIn .6s var(--ease) both,floatEmoji 2.6s ease-in-out 1s infinite}
+
+  .ob-input{width:100%;max-width:360px;border:none;border-bottom:2.5px solid var(--line);background:transparent;
+    font-family:"Fraunces";font-size:30px;text-align:center;padding:10px 6px;color:var(--ink);outline:none;transition:border-color .25s}
+  .ob-input:focus{border-color:var(--accent)}
+  .ob-input::placeholder{color:#c9c1b2}
+
+  .ob-opts{display:flex;flex-direction:column;gap:12px;max-width:400px;margin:0 auto}
+  .ob-opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--card);border:1.5px solid var(--line);
+    border-radius:16px;padding:16px 18px;font-size:15.5px;font-weight:500;cursor:pointer;
+    transition:transform .15s var(--ease),border-color .2s,background .2s}
+  .ob-opt:hover{transform:translateY(-3px) scale(1.01);border-color:var(--ink)}
+  .ob-opt:active{transform:scale(.98)}
+  .ob-opt .e{font-size:22px;flex:none}
+  .ob-opt.sel{border-color:var(--accent);background:#fdecea}
+
+  .ob-ages{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:380px;margin:0 auto}
+  .ob-age{width:60px;height:60px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);
+    font-family:"Fraunces";font-size:22px;cursor:pointer;transition:transform .15s var(--ease),border-color .2s,background .2s}
+  .ob-age:hover{transform:translateY(-3px)}
+  .ob-age.sel{border-color:var(--accent);background:var(--accent);color:#fff}
+
+  .ob-next{margin-top:32px;display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);
+    border:none;border-radius:999px;padding:15px 30px;font-size:15.5px;font-weight:600;font-family:inherit;cursor:pointer;
+    transition:transform .25s var(--ease),background .25s,opacity .2s}
+  .ob-next:hover:not(:disabled){transform:translateY(-3px);background:var(--accent)}
+  .ob-next:disabled{opacity:.4;cursor:not-allowed}
+  .ob-skip{display:block;margin:18px auto 0;background:none;border:none;color:var(--ink-soft);font-size:13px;font-family:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+  /* welcome-back profile chip */
+  .whoami{display:inline-flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:7px 8px 7px 14px;font-size:13.5px;font-weight:500;margin-bottom:18px}
+  .whoami .av{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;
+    justify-content:center;font-family:"Fraunces";font-size:13px}
+  .whoami .edit{background:var(--paper-2);border:none;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink-soft);transition:background .2s}
+  .whoami .edit:hover{background:var(--line)}
 </style>
 </head>
 <body>
+
+<!-- ONBOARDING (device-remembered profile) -->
+<div id="onboard" class="app-hidden">
+  <div class="ob-card">
+    <div class="ob-progress" id="obProgress"></div>
+
+    <!-- step 1: name -->
+    <div class="ob-step" data-step="0">
+      <span class="ob-emoji float">👋</span>
+      <h2 class="ob-q" data-text="First things first — what should we call you?"></h2>
+      <p class="ob-sub">We'll keep it on this device so you don't start over next time.</p>
+      <input class="ob-input" id="obName" type="text" placeholder="your name" maxlength="24" autocomplete="off" />
+      <button class="ob-next" id="obNameNext" disabled>Continue →</button>
+    </div>
+
+    <!-- step 2: age -->
+    <div class="ob-step" data-step="1">
+      <span class="ob-emoji float">🎂</span>
+      <h2 class="ob-q" data-text="How old are you?"></h2>
+      <p class="ob-sub">This helps us keep advice safe and right for you.</p>
+      <div class="ob-ages" id="obAges"></div>
+      <button class="ob-next" id="obAgeNext" disabled>Continue →</button>
+    </div>
+
+    <!-- step 3: experience -->
+    <div class="ob-step" data-step="2">
+      <span class="ob-emoji float">🧴</span>
+      <h2 class="ob-q" data-text="Have you tried acne products before?"></h2>
+      <p class="ob-sub">No judgment — it just helps us skip what hasn't worked.</p>
+      <div class="ob-opts" id="obExp"></div>
+    </div>
+
+    <!-- step 4: concern -->
+    <div class="ob-step" data-step="3">
+      <span class="ob-emoji float">🔍</span>
+      <h2 class="ob-q" data-text="What bugs you most right now?"></h2>
+      <p class="ob-sub">Pick the one that sounds most like you.</p>
+      <div class="ob-opts" id="obConcern"></div>
+    </div>
+
+    <!-- step 5: done -->
+    <div class="ob-step" data-step="4">
+      <span class="ob-emoji float">🎉</span>
+      <h2 class="ob-q" id="obDoneQ"></h2>
+      <p class="ob-sub">Snap or upload a clear, well-lit selfie and we'll take it from here.</p>
+      <button class="ob-next" id="obStart">Scan my skin →</button>
+    </div>
+
+    <button class="ob-skip" id="obSkip">Skip for now</button>
+  </div>
+</div>
 
 <nav>
   <div class="container nav-inner">
@@ -159,10 +266,11 @@
   </div>
 </nav>
 
-<div class="container">
+<div class="container" id="appMain">
   <div class="head">
+    <div id="whoamiSlot"></div>
     <div class="kick">Analyze</div>
-    <h1>Drop a photo. <span class="it">See</span> what's there.</h1>
+    <h1 id="headTitle">Drop a photo. <span class="it">See</span> what's there.</h1>
     <p>Your image is analyzed privately and never stored. Clarity Labs surfaces every blemish it finds, rates the severity, and builds you a tailored plan.</p>
   </div>
 
@@ -259,6 +367,127 @@
 </div>
 
 <script>
+  /* ============ ONBOARDING + DEVICE-SAVED PROFILE ============ */
+  const PROFILE_KEY="clarity_profile_v1";
+  let PROFILE=null;
+  const g=id=>document.getElementById(id);
+
+  const EXP_OPTS=[
+    {e:"💪",label:"Tried a bunch, still breaking out",val:"experienced"},
+    {e:"🙂",label:"A little — a cleanser here and there",val:"some"},
+    {e:"🌱",label:"Not really, I'm just starting out",val:"beginner"},
+  ];
+  const CONCERN_OPTS=[
+    {e:"🔁",label:"Breakouts that keep coming back",val:"recurring breakouts"},
+    {e:"🟤",label:"Dark spots & marks left behind",val:"dark spots"},
+    {e:"⚫",label:"Blackheads & clogged pores",val:"blackheads & clogged pores"},
+    {e:"🤷",label:"Honestly, not totally sure",val:"not sure"},
+  ];
+
+  function loadProfile(){
+    try{const raw=localStorage.getItem(PROFILE_KEY);if(raw)PROFILE=JSON.parse(raw);}catch(e){PROFILE=null;}
+  }
+  function saveProfile(){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(PROFILE));}catch(e){}}
+
+  // build dynamic onboarding controls
+  (function buildOnboard(){
+    // progress dots
+    g("obProgress").innerHTML=Array.from({length:5},(_,i)=>`<i data-p="${i}"></i>`).join("");
+    // ages 13-18 + other
+    const ages=["13","14","15","16","17","18","19+"];
+    g("obAges").innerHTML=ages.map(a=>`<button class="ob-age" data-age="${a}">${a}</button>`).join("");
+    // options
+    g("obExp").innerHTML=EXP_OPTS.map(o=>`<button class="ob-opt" data-val="${o.val}"><span class="e">${o.e}</span>${o.label}</button>`).join("");
+    g("obConcern").innerHTML=CONCERN_OPTS.map(o=>`<button class="ob-opt" data-val="${o.val}"><span class="e">${o.e}</span>${o.label}</button>`).join("");
+  })();
+
+  const draft={name:"",age:"",experience:"",concern:""};
+  let obStep=0;
+  const OB_STEPS=[...document.querySelectorAll(".ob-step")];
+
+  function splitWords(text){
+    return text.split(" ").map((w,i)=>`<span class="word" style="animation-delay:${.04*i}s">${w}&nbsp;</span>`).join("");
+  }
+  function showStep(i){
+    obStep=i;
+    OB_STEPS.forEach(s=>s.classList.toggle("active",+s.dataset.step===i));
+    // progress
+    [...g("obProgress").children].forEach((d,di)=>{d.className=di<i?"done":di===i?"on":"";});
+    // animate question words (bouncing text)
+    const step=OB_STEPS[i];
+    const q=step.querySelector(".ob-q[data-text]");
+    if(q){q.innerHTML=splitWords(q.dataset.text);}
+    // re-trigger emoji bounce
+    const em=step.querySelector(".ob-emoji");
+    if(em){em.style.animation="none";em.offsetHeight;em.style.animation="";}
+    if(i===0)setTimeout(()=>g("obName").focus(),350);
+  }
+
+  function startOnboard(prefill){
+    if(prefill){draft.name=PROFILE?.name||"";}
+    g("onboard").classList.remove("app-hidden");
+    g("appMain").classList.add("app-hidden");
+    document.querySelector("nav").classList.add("app-hidden");
+    g("obName").value=draft.name||"";
+    g("obNameNext").disabled=!draft.name.trim();
+    showStep(0);
+  }
+  function finishOnboard(){
+    PROFILE={name:draft.name.trim()||"friend",age:draft.age,experience:draft.experience,concern:draft.concern,savedAt:Date.now()};
+    saveProfile();
+    g("onboard").classList.add("app-hidden");
+    g("appMain").classList.remove("app-hidden");
+    document.querySelector("nav").classList.remove("app-hidden");
+    renderWhoami();
+  }
+
+  // step 1: name
+  g("obName").addEventListener("input",e=>{draft.name=e.target.value;g("obNameNext").disabled=!draft.name.trim();});
+  g("obName").addEventListener("keydown",e=>{if(e.key==="Enter"&&draft.name.trim())g("obNameNext").click();});
+  g("obNameNext").addEventListener("click",()=>showStep(1));
+  // step 2: age
+  g("obAges").addEventListener("click",e=>{
+    const b=e.target.closest(".ob-age");if(!b)return;
+    g("obAges").querySelectorAll(".ob-age").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");draft.age=b.dataset.age;g("obAgeNext").disabled=false;
+  });
+  g("obAgeNext").addEventListener("click",()=>showStep(2));
+  // step 3: experience (auto-advance on pick)
+  g("obExp").addEventListener("click",e=>{
+    const b=e.target.closest(".ob-opt");if(!b)return;
+    g("obExp").querySelectorAll(".ob-opt").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");draft.experience=b.dataset.val;setTimeout(()=>showStep(3),260);
+  });
+  // step 4: concern
+  g("obConcern").addEventListener("click",e=>{
+    const b=e.target.closest(".ob-opt");if(!b)return;
+    g("obConcern").querySelectorAll(".ob-opt").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");draft.concern=b.dataset.val;
+    g("obDoneQ").innerHTML=splitWords(`You're all set, ${escapeHtmlSafe(draft.name.trim()||"friend")}!`);
+    setTimeout(()=>showStep(4),260);
+  });
+  // step 5: start
+  g("obStart").addEventListener("click",finishOnboard);
+  g("obSkip").addEventListener("click",()=>{draft.name=draft.name||"";finishOnboard();});
+
+  function escapeHtmlSafe(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+  function initials2(n){return (n||"?").trim().split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();}
+
+  function renderWhoami(){
+    if(!PROFILE)return;
+    g("whoamiSlot").innerHTML=`<div class="whoami"><span class="av">${initials2(PROFILE.name)}</span>
+      <span>Hey <b>${escapeHtmlSafe(PROFILE.name)}</b>${PROFILE.age?" · "+escapeHtmlSafe(PROFILE.age):""}</span>
+      <button class="edit" id="editProfile">Not you?</button></div>`;
+    g("headTitle").innerHTML=`Alright ${escapeHtmlSafe(PROFILE.name)}, <span class="it">let's</span> look.`;
+    g("editProfile").addEventListener("click",()=>{Object.assign(draft,{name:PROFILE.name||"",age:PROFILE.age||"",experience:"",concern:""});startOnboard(true);});
+  }
+
+  // boot
+  loadProfile();
+  if(PROFILE&&PROFILE.name){ renderWhoami(); }
+  else { startOnboard(false); }
+  /* ============ END ONBOARDING ============ */
+
   const CLASS_COLORS={"blackheads":"#2E6E63","dark spot":"#7A5CC2","nodules":"#C24E6B","papules":"#E4903F","pustules":"#E8563A","whiteheads":"#4A8BB0"};
   const fallbackColor="#E8563A";
   // Maximum sensitivity — surface every blemish the model can find (like the original powerful mode).
@@ -391,7 +620,7 @@
     $("adviceBody").style.display="none";
     try{
       const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score})});
+        body:JSON.stringify({counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score,profile:PROFILE||undefined})});
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"Could not generate advice");
       renderAdvice(data);

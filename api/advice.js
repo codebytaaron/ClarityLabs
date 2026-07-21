@@ -17,9 +17,14 @@ realistic US prices. Tailor every pick to the blemish types actually found (e.g.
 blackheads/whiteheads, benzoyl peroxide for pustules/papules, adapalene for comedonal acne, niacinamide for
 redness, azelaic acid or vitamin C for dark spots, and always a daily SPF).
 
+Our users are mostly teenagers (13-18) with mild-to-moderate acne who have already tried some products.
+If a name is provided, address them warmly by name in the summary. If they're a young teen, keep language simple and
+encouraging, favor gentle/beginner-friendly routines, and remind them a parent can help pick products. Tailor picks to
+their stated experience level (don't re-recommend basics to someone experienced) and their main concern.
+
 Respond ONLY with a JSON object in exactly this shape:
 {
-  "summary": "2-3 sentence plain-language read of what was found and what it means.",
+  "summary": "2-3 sentence plain-language read of what was found and what it means, addressed to the user by name if given.",
   "routine": ["3 to 5 short ordered steps (cleanse, treat, moisturize, SPF, etc.) tailored to the findings"],
   "products": {
     "budget": [{"name":"Brand + product","targets":"which blemish type it helps","price":"$X","why":"one short sentence"}],
@@ -44,13 +49,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { counts = {}, total = 0, severity = "unknown", score = 0 } = req.body || {};
+    const { counts = {}, total = 0, severity = "unknown", score = 0, profile = null } = req.body || {};
     const breakdown = Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(", ") || "none";
+
+    let who = "";
+    if (profile && typeof profile === "object") {
+      const parts = [];
+      if (profile.name) parts.push(`Name: ${String(profile.name).slice(0, 40)}`);
+      if (profile.age) parts.push(`Age: ${String(profile.age).slice(0, 6)}`);
+      if (profile.experience) parts.push(`Product experience: ${String(profile.experience).slice(0, 40)}`);
+      if (profile.concern) parts.push(`Main concern: ${String(profile.concern).slice(0, 60)}`);
+      if (parts.length) who = `\nAbout the user:\n- ${parts.join("\n- ")}`;
+    }
 
     const userMsg = `Detection results:
 - Total blemishes: ${total}
 - Breakdown: ${breakdown}
-- Overall severity: ${severity} (score ${score})
+- Overall severity: ${severity} (score ${score})${who}
 Give the JSON plan with tiered product recommendations.`;
 
     const rf = await fetch(GROQ_URL, {
