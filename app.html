@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clarity Labs — Analyze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;
+    --line:#DAD3C4;--accent:#E8563A;--accent-2:#2E6E63;--card:#FBF9F4;
+    --radius:20px;--ease:cubic-bezier(.2,.8,.2,1);
+    --mild:#2E6E63;--moderate:#E4903F;--severe:#D64545;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"Inter",-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.045;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  h1,h2,h3,.serif{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.02em}
+  a{color:inherit;text-decoration:none}
+  .container{max-width:1160px;margin:0 auto;padding:0 28px}
+
+  nav{border-bottom:1px solid var(--line);background:rgba(242,238,230,.8);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:70px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;font-weight:500}
+  .logo .mark{width:24px;height:24px;border-radius:7px;background:var(--ink);position:relative;overflow:hidden}
+  .logo .mark::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
+  .logo .mark::after{content:"";position:absolute;left:5px;right:5px;height:1.5px;background:var(--accent);top:50%;box-shadow:0 0 8px var(--accent);animation:scanmark 2.4s var(--ease) infinite}
+  @keyframes scanmark{0%,100%{top:20%}50%{top:78%}}
+  .back{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink-soft);transition:color .2s}
+  .back:hover{color:var(--ink)}
+
+  .head{padding:44px 0 26px}
+  .head .kick{font-size:12.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  .head h1{font-size:clamp(30px,4.2vw,46px);line-height:1.02;margin:0 0 10px}
+  .head h1 .it{font-style:italic;color:var(--accent)}
+  .head p{color:var(--ink-soft);font-size:16px;margin:0;max-width:520px;line-height:1.55}
+
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:22px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+
+  .drop{border:2px dashed var(--line);border-radius:16px;padding:56px 24px;text-align:center;cursor:pointer;transition:border-color .25s,background .25s}
+  .drop.drag{border-color:var(--accent);background:rgba(232,86,58,.05)}
+  .drop .ic{width:54px;height:54px;margin:0 auto 16px;border-radius:14px;background:var(--paper-2);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .drop .ic svg{width:26px;height:26px}
+  .drop strong{display:block;font-family:"Fraunces";font-size:20px;margin-bottom:6px}
+  .drop span{color:var(--ink-soft);font-size:13.5px}
+
+  /* instrument status bar */
+  .statusbar{display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;color:var(--ink-soft);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:14px;background:var(--card);flex-wrap:wrap}
+  .statusbar .k{color:var(--ink);font-weight:500}
+  .statusbar .sep{width:1px;height:12px;background:var(--line)}
+  .statusbar .dotlive{display:inline-flex;align-items:center;gap:6px;color:var(--accent-2);font-weight:500}
+  .statusbar .dotlive b{width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 7px var(--accent-2);animation:blink 1.5s infinite}
+  @keyframes blink{50%{opacity:.35}}
+
+  .stage{display:none}
+  .frame{position:relative;padding:12px}
+  /* corner brackets */
+  .frame::before,.frame::after,.frame .cbl,.frame .cbr{content:"";position:absolute;width:18px;height:18px;border:2px solid var(--ink);opacity:.55;z-index:3}
+  .frame::before{top:0;left:0;border-right:none;border-bottom:none;border-radius:4px 0 0 0}
+  .frame::after{top:0;right:0;border-left:none;border-bottom:none;border-radius:0 4px 0 0}
+  .frame .cbl{bottom:0;left:0;border-right:none;border-top:none;border-radius:0 0 0 4px}
+  .frame .cbr{bottom:0;right:0;border-left:none;border-top:none;border-radius:0 0 4px 0}
+  .holder{position:relative;border-radius:10px;overflow:hidden;background:#12100c;display:flex;align-items:center;justify-content:center;min-height:280px}
+  .holder::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+    background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+    background-size:26px 26px}
+  canvas{max-width:100%;height:auto;display:block;position:relative;z-index:1}
+  .loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:14px;background:rgba(20,16,25,.66);color:#fff;font-size:14px;font-weight:500;flex-direction:column}
+  .loading.on{display:flex}
+  .loading .lbl{opacity:.9}
+  .scanbar{width:60%;height:3px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;position:relative}
+  .scanbar::after{content:"";position:absolute;left:-40%;top:0;bottom:0;width:40%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:load 1.1s infinite}
+  @keyframes load{to{left:110%}}
+
+  .toolbar{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .btn{border:none;border-radius:12px;padding:14px 22px;font-size:14.5px;font-weight:600;cursor:pointer;transition:transform .1s,background .25s,opacity .2s;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--ink);color:var(--paper)}
+  .btn.primary:hover{background:var(--accent)}
+  .btn.ghost{background:var(--paper-2);color:var(--ink)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .err{background:#fdecea;border:1px solid #f5c6c0;color:#a02a1a;padding:11px 14px;border-radius:11px;font-size:13.5px;margin-top:14px;display:none}
+  .err.on{display:block}
+
+  .panel-title{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+  .total{font-family:var(--mono);font-weight:600;font-size:58px;line-height:1;letter-spacing:-.03em;margin-top:8px}
+  .total small{font-size:13px;font-weight:500;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-left:10px}
+
+  /* severity */
+  .sev{margin-top:22px;border-top:1px solid var(--line);padding-top:20px;display:none}
+  .sev.on{display:block}
+  .sev .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+  .sev .level{font-family:"Fraunces";font-size:26px}
+  .sev .score{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);font-weight:500;letter-spacing:.04em}
+  .sev .meter{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--mild),var(--moderate),var(--severe));position:relative}
+  .sev .marker{position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--ink);transform:translateX(-50%);left:0;transition:left 1s var(--ease);box-shadow:0 4px 10px rgba(0,0,0,.18)}
+  .sev .scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:8px;font-weight:500}
+
+  .breakdown{margin-top:22px;display:flex;flex-direction:column;gap:9px}
+  .chip{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--paper);animation:pop .4s var(--ease)}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}}
+  .chip .dot{width:13px;height:13px;border-radius:5px;flex:none}
+  .chip .name{text-transform:capitalize;flex:1;font-weight:500;font-size:14.5px}
+  .chip .count{font-family:var(--mono);font-weight:600;font-size:18px}
+  .empty-note{color:var(--ink-soft);font-size:14px;line-height:1.5;padding:6px 0}
+
+  /* advice */
+  .advice{margin-top:22px;display:none}
+  .advice.on{display:block}
+  .advice-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;position:relative;overflow:hidden}
+  .advice-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .advice-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .advice-head .spark{width:34px;height:34px;border-radius:10px;background:var(--paper-2);color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .advice-head h2{font-size:24px;margin:0}
+  .advice-sub{color:var(--ink-soft);font-size:13.5px;margin:0 0 20px}
+  .advice-loading{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px;padding:12px 0}
+  .adv-spin{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .adv-btn{display:inline-flex;align-items:center;gap:10px;margin-top:4px}
+  .advice-summary{font-size:16px;line-height:1.6;margin:0 0 24px}
+  .adv-sectitle{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-family:"Inter";font-weight:700;margin:24px 0 12px}
+  .adv-block ol{margin:0;padding-left:20px}
+  .adv-block ol li{font-size:14.5px;line-height:1.5;margin-bottom:9px}
+
+  /* product price tiers */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.tiers{grid-template-columns:1fr}}
+  .tier{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--paper)}
+  .tier-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .tier-head .name{font-family:"Fraunces";font-size:17px}
+  .tier-head .price{font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--accent-2)}
+  .tier.mid .tier-head .price{color:var(--moderate)}
+  .tier.premium .tier-head .price{color:var(--accent)}
+  .prod{padding:11px 0;border-top:1px solid var(--line)}
+  .prod:first-of-type{border-top:none}
+  .prod .pn{font-size:14px;font-weight:600;line-height:1.3}
+  .prod .pp{font-family:"Fraunces";font-size:14px;color:var(--ink);float:right;margin-left:8px}
+  .prod .pt{font-size:12px;color:var(--accent);font-weight:600;text-transform:capitalize;margin:3px 0}
+  .prod .pw{font-size:12.5px;color:var(--ink-soft);line-height:1.45}
+
+  .derm{margin-top:24px;padding:16px 18px;background:rgba(214,69,69,.07);border:1px solid rgba(214,69,69,.25);border-radius:14px;font-size:14px;line-height:1.55;display:flex;gap:12px}
+  .derm svg{flex:none;width:20px;height:20px;color:var(--severe);margin-top:1px}
+
+  .disc{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:34px 0 40px;line-height:1.5;max-width:640px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="logo" href="index.html"><span class="mark"></span>Clarity Labs</a>
+    <a class="back" href="index.html">← Back to home</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="head">
+    <div class="kick">Analyze</div>
+    <h1>Drop a photo. <span class="it">See</span> what's there.</h1>
+    <p>Your image is analyzed privately and never stored. Clarity Labs surfaces every blemish it finds, rates the severity, and builds you a tailored plan.</p>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div class="card">
+      <div class="statusbar">
+        <span class="dotlive"><b></b><span id="statusText">READY</span></span>
+        <span class="sep"></span>
+        <span>MODEL <span class="k">acne-detection · YOLO26n</span></span>
+        <span class="sep"></span>
+        <span>SENSITIVITY <span class="k">MAX</span></span>
+      </div>
+      <div id="drop" class="drop">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
+        <strong>Drop a photo or click to upload</strong>
+        <span>JPG or PNG · analyzed privately, not stored</span>
+      </div>
+      <input id="file" type="file" accept="image/*" hidden />
+
+      <div class="stage" id="stage">
+        <div class="frame">
+          <span class="cbl"></span><span class="cbr"></span>
+          <div class="holder">
+            <canvas id="canvas"></canvas>
+            <div class="loading" id="loading"><div class="scanbar"></div><span class="lbl" id="loadLbl">Scanning skin…</span></div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn primary" id="run">Analyze photo</button>
+          <button class="btn ghost" id="reset">Choose another</button>
+        </div>
+        <div class="err" id="err"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card">
+      <div class="panel-title">Detections found</div>
+      <div class="total"><span id="total">—</span><small>total</small></div>
+
+      <div class="sev" id="sev">
+        <div class="row">
+          <span class="level" id="sevLevel">—</span>
+          <span class="score" id="sevScore"></span>
+        </div>
+        <div class="meter"><div class="marker" id="sevMarker"></div></div>
+        <div class="scale"><span>Clear</span><span>Mild</span><span>Moderate</span><span>Severe</span></div>
+      </div>
+
+      <div class="breakdown" id="breakdown">
+        <div class="empty-note">Upload a photo and press <b>Analyze</b> — every blemish it finds appears here, broken down by type.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI ADVICE -->
+  <div class="advice" id="advice">
+    <div class="advice-card">
+      <div class="advice-head">
+        <span class="spark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg></span>
+        <h2>Your personalized plan</h2>
+      </div>
+      <p class="advice-sub">Based on exactly what the scan found — a routine plus product picks at every budget. Educational guidance, not a diagnosis.</p>
+
+      <button class="btn primary adv-btn" id="getAdvice">✦ Get my personalized plan</button>
+
+      <div class="advice-loading" id="adviceLoading" style="display:none"><div class="adv-spin"></div>Building your plan…</div>
+
+      <div id="adviceBody" style="display:none">
+        <p class="advice-summary" id="advSummary"></p>
+
+        <div class="adv-block">
+          <div class="adv-sectitle">Your routine</div>
+          <ol id="advRoutine"></ol>
+        </div>
+
+        <div class="adv-sectitle">Products by budget</div>
+        <div class="tiers">
+          <div class="tier budget"><div class="tier-head"><span class="name">Budget</span><span class="price">$</span></div><div id="tierBudget"></div></div>
+          <div class="tier mid"><div class="tier-head"><span class="name">Mid-range</span><span class="price">$$</span></div><div id="tierMid"></div></div>
+          <div class="tier premium"><div class="tier-head"><span class="name">Premium</span><span class="price">$$$</span></div><div id="tierPremium"></div></div>
+        </div>
+
+        <div class="derm" id="advDerm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4m0 4h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+          <span id="advDermText"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="disc">Clarity Labs is for informational and tracking purposes only and does not provide a medical diagnosis or treatment. Product and ingredient suggestions are general education, not a prescription. For any skin concern, consult a licensed dermatologist.</p>
+</div>
+
+<script>
+  const CLASS_COLORS={"blackheads":"#2E6E63","dark spot":"#7A5CC2","nodules":"#C24E6B","papules":"#E4903F","pustules":"#E8563A","whiteheads":"#4A8BB0"};
+  const fallbackColor="#E8563A";
+  // Maximum sensitivity — surface every blemish the model can find (like the original powerful mode).
+  const CONFIDENCE=0, OVERLAP=60;
+  // Severity weighting — inflamed lesions count for more.
+  const WEIGHTS={nodules:4,pustules:3,papules:2,"dark spot":1.5,whiteheads:1,blackheads:1};
+
+  const $=id=>document.getElementById(id);
+  const drop=$("drop"),fileInput=$("file"),stage=$("stage"),canvas=$("canvas"),ctx=canvas.getContext("2d");
+  const loading=$("loading"),loadLbl=$("loadLbl"),errBox=$("err");
+  let currentImage=null,currentBase64=null,lastPredictions=[],lastCounts={},lastSev=null;
+
+  drop.addEventListener("click",()=>fileInput.click());
+  drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
+  drop.addEventListener("dragleave",()=>drop.classList.remove("drag"));
+  drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("drag");if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0])});
+  fileInput.addEventListener("change",e=>{if(e.target.files[0])loadFile(e.target.files[0])});
+
+  function loadFile(file){
+    hideErr();
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const dataUrl=ev.target.result;
+      currentBase64=dataUrl.split(",")[1];
+      const img=new Image();
+      img.onload=()=>{currentImage=img;lastPredictions=[];drop.style.display="none";stage.style.display="block";draw();resetResults()};
+      img.src=dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function draw(){
+    if(!currentImage)return;
+    canvas.width=currentImage.naturalWidth;canvas.height=currentImage.naturalHeight;
+    ctx.drawImage(currentImage,0,0);
+    const scale=Math.max(1,canvas.width/640);
+    for(const p of lastPredictions){
+      const color=CLASS_COLORS[p.class]||fallbackColor;
+      const x=p.x-p.width/2,y=p.y-p.height/2;
+      ctx.lineWidth=2.4*scale;ctx.strokeStyle=color;ctx.strokeRect(x,y,p.width,p.height);
+      const text=p.class+"  "+Math.round(p.confidence*100)+"%";
+      ctx.font=`600 ${13*scale}px Inter, sans-serif`;
+      const padX=6*scale,h=20*scale,w=ctx.measureText(text).width+padX*2;
+      let ty=y-h;if(ty<0)ty=y;
+      ctx.fillStyle=color;ctx.fillRect(x,ty,w,h);
+      ctx.fillStyle="#fff";ctx.textBaseline="middle";ctx.fillText(text,x+padX,ty+h/2);
+    }
+  }
+
+  $("run").addEventListener("click",analyze);
+  $("reset").addEventListener("click",()=>{
+    currentImage=null;currentBase64=null;lastPredictions=[];
+    stage.style.display="none";drop.style.display="block";fileInput.value="";resetResults();
+  });
+
+  async function analyze(){
+    if(!currentBase64)return;
+    hideErr();loading.classList.add("on");loadLbl.textContent="Scanning skin…";$("run").disabled=true;
+    const st=$("statusText");if(st)st.textContent="ANALYZING";
+    try{
+      const res=await fetch("/api/detect",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({image:currentBase64,confidence:CONFIDENCE,overlap:OVERLAP})});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||"Detection failed");
+      lastPredictions=data.predictions||[];draw();
+      lastCounts=countByClass(lastPredictions);
+      lastSev=computeSeverity(lastCounts);
+      updateResults(lastPredictions,lastCounts,lastSev);
+    }catch(e){showErr(e.message)}
+    finally{loading.classList.remove("on");$("run").disabled=false;if(st)st.textContent="COMPLETE"}
+  }
+
+  function countByClass(preds){const c={};for(const p of preds)c[p.class]=(c[p.class]||0)+1;return c}
+
+  function computeSeverity(counts){
+    let score=0;for(const [cls,n] of Object.entries(counts))score+=(WEIGHTS[cls]||1)*n;
+    let level,pct;
+    if(score===0){level="Clear";pct=2}
+    else if(score<=6){level="Mild";pct=22}
+    else if(score<=16){level="Moderate";pct=58}
+    else{level="Severe";pct=92}
+    return {score:Math.round(score),level,pct};
+  }
+
+  function resetResults(){
+    $("total").textContent="—";
+    $("sev").classList.remove("on");
+    $("advice").classList.remove("on");
+    resetAdviceCard();
+    $("breakdown").innerHTML='<div class="empty-note">Press <b>Analyze</b> to run detection.</div>';
+  }
+
+  function resetAdviceCard(){
+    $("getAdvice").style.display="inline-flex";
+    $("getAdvice").disabled=false;
+    $("getAdvice").textContent="✦ Get my personalized plan";
+    $("adviceLoading").style.display="none";
+    $("adviceBody").style.display="none";
+  }
+
+  function updateResults(preds,counts,sev){
+    $("total").textContent=preds.length;
+    if(!preds.length){
+      $("sev").classList.remove("on");
+      $("advice").classList.remove("on");
+      $("breakdown").innerHTML='<div class="empty-note">No blemishes detected. If you expected some, try a clearer, closer, well-lit photo.</div>';
+      return;
+    }
+    // severity
+    $("sev").classList.add("on");
+    $("sevLevel").textContent=sev.level;
+    $("sevScore").textContent="severity score "+sev.score;
+    $("sevMarker").style.left=sev.pct+"%";
+    // breakdown
+    $("breakdown").innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([cls,n])=>{
+      const color=CLASS_COLORS[cls]||fallbackColor;
+      return `<div class="chip"><span class="dot" style="background:${color}"></span><span class="name">${cls}</span><span class="count">${n}</span></div>`;
+    }).join("");
+    // reveal the advice card with its button (advice only runs on request)
+    $("advice").classList.add("on");
+    resetAdviceCard();
+  }
+
+  $("getAdvice").addEventListener("click",getAdvice);
+
+  async function getAdvice(){
+    if(!lastPredictions.length||!lastSev)return;
+    $("getAdvice").style.display="none";
+    $("adviceLoading").style.display="flex";
+    $("adviceBody").style.display="none";
+    try{
+      const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score})});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||"Could not generate advice");
+      renderAdvice(data);
+    }catch(e){
+      $("adviceLoading").style.display="none";
+      $("getAdvice").style.display="inline-flex";
+      $("getAdvice").textContent="Try again";
+      showErr("Couldn't build a plan: "+e.message);
+    }
+  }
+
+  function renderAdvice(d){
+    $("adviceLoading").style.display="none";
+    $("adviceBody").style.display="block";
+    $("advSummary").textContent=d.summary||"";
+    $("advRoutine").innerHTML=(d.routine||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+    const p=d.products||{};
+    renderTier("tierBudget",p.budget);
+    renderTier("tierMid",p.mid);
+    renderTier("tierPremium",p.premium);
+    if(d.derm){$("advDerm").style.display="flex";$("advDermText").textContent=d.derm;}
+    else $("advDerm").style.display="none";
+  }
+
+  function renderTier(id,list){
+    const items=Array.isArray(list)?list:[];
+    $(id).innerHTML=items.length?items.map(pr=>
+      `<div class="prod">
+        <div class="pn">${escapeHtml(pr.name||"")}<span class="pp">${escapeHtml(pr.price||"")}</span></div>
+        <div class="pt">${escapeHtml(pr.targets||"")}</div>
+        <div class="pw">${escapeHtml(pr.why||"")}</div>
+      </div>`).join("")
+      :'<div class="prod"><div class="pw">No pick for this tier.</div></div>';
+  }
+
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+  function showErr(m){errBox.textContent=m;errBox.classList.add("on")}
+  function hideErr(){errBox.classList.remove("on")}
+</script>
+</body>
+</html>
