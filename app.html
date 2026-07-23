@@ -92,7 +92,7 @@
   .total{font-family:var(--mono);font-weight:600;font-size:58px;line-height:1;letter-spacing:-.03em;margin-top:8px}
   .total small{font-size:13px;font-weight:500;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-left:10px}
 
-  /* severity */
+  /* visible activity */
   .sev{margin-top:22px;border-top:1px solid var(--line);padding-top:20px;display:none}
   .sev.on{display:block}
   .sev .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
@@ -278,7 +278,7 @@
     <div id="whoamiSlot"></div>
     <div class="kick">Analyze</div>
     <h1 id="headTitle">Drop a photo. <span class="it">See</span> what's there.</h1>
-    <p>Your image is sent securely for analysis and not saved by Clarity Labs. We surface every blemish the models find, rate the severity, and build you a tailored plan.</p>
+    <p>Your image is sent securely for analysis and not saved by Clarity Labs. We surface the visible findings, summarize their activity, and build you a tailored plan.</p>
   </div>
 
   <div class="grid">
@@ -325,7 +325,7 @@
           <span class="score" id="sevScore"></span>
         </div>
         <div class="meter"><div class="marker" id="sevMarker"></div></div>
-        <div class="scale"><span>Clear</span><span>Mild</span><span>Moderate</span><span>Severe</span></div>
+        <div class="scale"><span>None seen</span><span>Low</span><span>Medium</span><span>Higher</span></div>
       </div>
 
       <div class="breakdown" id="breakdown">
@@ -505,7 +505,8 @@
   const fallbackColor="#E8563A";
   // Maximum sensitivity — surface every blemish the model can find (like the original powerful mode).
   const CONFIDENCE=0, OVERLAP=60;
-  // Severity weighting — inflamed lesions count for more.
+  // Visual-activity weighting — inflamed findings count for more. This is an
+  // app sorting aid, not a medical severity score.
   const WEIGHTS={nodules:4,pustules:3,papules:2,"dark spot":1.5,whiteheads:1,blackheads:1};
 
   const $=id=>document.getElementById(id);
@@ -593,10 +594,10 @@
   function computeSeverity(counts){
     let score=0;for(const [cls,n] of Object.entries(counts))score+=(WEIGHTS[cls]||1)*n;
     let level,pct;
-    if(score===0){level="Clear";pct=2}
-    else if(score<=6){level="Mild";pct=22}
-    else if(score<=16){level="Moderate";pct=58}
-    else{level="Severe";pct=92}
+    if(score===0){level="No visible activity";pct=2}
+    else if(score<=6){level="Low visible activity";pct=22}
+    else if(score<=16){level="Medium visible activity";pct=58}
+    else{level="Higher visible activity";pct=92}
     return {score:Math.round(score),level,pct};
   }
 
@@ -624,10 +625,10 @@
       $("breakdown").innerHTML='<div class="empty-note">No blemishes detected. If you expected some, try a clearer, closer, well-lit photo.</div>';
       return;
     }
-    // severity
+    // neutral visible-activity summary (not a medical severity rating)
     $("sev").classList.add("on");
     $("sevLevel").textContent=sev.level;
-    $("sevScore").textContent="severity score "+sev.score;
+    $("sevScore").textContent="scan pattern index "+sev.score+" · informational";
     $("sevMarker").style.left=sev.pct+"%";
     // breakdown
     $("breakdown").innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([cls,n])=>{
@@ -650,7 +651,7 @@
       const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           image:currentBase64,imageType:currentImageType,predictions:lastPredictions,
-          counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score,
+          counts:lastCounts,total:lastPredictions.length,activity:lastSev.level,score:lastSev.score,
           profile:PROFILE||undefined
         })});
       const data=await res.json();

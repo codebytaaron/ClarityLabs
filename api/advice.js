@@ -11,7 +11,7 @@ const MAX_IMAGE_BASE64_LENGTH = 6_000_000;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const SYSTEM_PROMPT = `You are a friendly, evidence-based skincare guide inside an acne-detection app.
-You receive the user's actual skin photo, Roboflow object detections, an app-computed severity, and an optional
+You receive the user's actual skin photo, Roboflow object detections, an app-computed visible-activity level, and an optional
 user profile. Inspect the photo yourself, then reconcile what is visibly supported with the detector output.
 Give practical over-the-counter guidance. You are NOT a doctor: never diagnose, never claim certainty from a
 photo, never prescribe prescription-only medication, and keep an encouraging, non-alarming tone.
@@ -47,7 +47,7 @@ Respond ONLY with a JSON object in exactly this shape:
     "mid": [{"name":"...","targets":"...","price":"$X","why":"..."}],
     "premium": [{"name":"...","targets":"...","price":"$X","why":"..."}]
   },
-  "derm": "one sentence on when to see a dermatologist given the severity"
+  "derm": "one calm sentence on when professional guidance may help, based on the visible findings"
 }
 Give 2 products per tier. Budget = drugstore, roughly under $20. Mid = roughly $20-45. Premium = roughly $45+.
 Keep every string concise. No markdown, no text outside the JSON.`;
@@ -62,6 +62,44 @@ function cleanPredictions(predictions) {
     width: Number.isFinite(Number(p?.width)) ? Math.round(Number(p.width)) : null,
     height: Number.isFinite(Number(p?.height)) ? Math.round(Number(p.height)) : null
   }));
+}
+
+function parsePlanText(value) {
+  if (value && typeof value === "object") return value;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  const candidates = [
+    trimmed,
+    trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""),
+    trimmed.slice(trimmed.indexOf("{"), trimmed.lastIndexOf("}") + 1)
+  ];
+  for (const candidate of candidates) {
+    if (!candidate || !candidate.startsWith("{")) continue;
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {}
+  }
+  return null;
+}
+
+async function requestPlan(apiKey, messages, strictJson = true) {
+  const body = {
+    model: MODEL,
+    temperature: strictJson ? 0.2 : 0.1,
+    max_completion_tokens: 1800,
+    messages
+  };
+  if (strictJson) body.response_format = { type: "json_object" };
+
+  const response = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+    body: JSON.stringify(body)
+  });
+  let data = null;
+  try { data = await response.json(); } catch {}
+  return { response, data };
 }
 
 export default async function handler(req, res) {
@@ -83,7 +121,7 @@ export default async function handler(req, res) {
       predictions = [],
       counts = {},
       total = 0,
-      severity = "unknown",
+      activity = req.body?.severity || "unknown",
       score = 0,
       profile = null
     } = req.body || {};
@@ -114,48 +152,45 @@ export default async function handler(req, res) {
 Roboflow detection summary:
 - Total blemishes: ${total}
 - Breakdown: ${breakdown}
-- App-computed severity: ${severity} (weighted score ${score})
+- App-computed visible activity: ${activity} (internal pattern index ${score}; not a medical severity score)
 - Detection boxes (pixel coordinates on this same image): ${JSON.stringify(safePredictions)}${who}
 
 Return the requested JSON plan. Ground visualFindings in this photo, make the routine specific to those findings,
 and clearly acknowledge any lighting/framing limitation.`;
 
-    const rf = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.25,
-        max_completion_tokens: 1800,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: [
+          { type: "text", text: userMsg },
           {
-            role: "user",
-            content: [
-              { type: "text", text: userMsg },
-              {
-                type: "image_url",
-                image_url: { url: `data:${safeImageType};base64,${image}` }
-              }
-            ]
+            type: "image_url",
+            image_url: { url: `data:${safeImageType};base64,${image}` }
           }
         ]
-      })
-    });
+      }
+    ];
 
-    const data = await rf.json();
-    if (!rf.ok) {
-      const msg = (data && data.error && data.error.message) || `Groq error (${rf.status})`;
-      res.status(rf.status).json({ error: msg });
-      return;
+    // Groq can occasionally produce useful content that fails its strict JSON
+    // validator. Recover that generation first; if needed, retry without the
+    // strict response_format and parse JSON (including fenced JSON) ourselves.
+    let { response: rf, data } = await requestPlan(apiKey, messages, true);
+    let plan = parsePlanText(data?.choices?.[0]?.message?.content)
+      || parsePlanText(data?.error?.failed_generation);
+
+    if (!plan) {
+      ({ response: rf, data } = await requestPlan(apiKey, messages, false));
+      plan = parsePlanText(data?.choices?.[0]?.message?.content)
+        || parsePlanText(data?.error?.failed_generation);
     }
 
-    const content = data.choices?.[0]?.message?.content || "{}";
-    let plan;
-    try { plan = JSON.parse(content); } catch { plan = null; }
     if (!plan || typeof plan !== "object") {
-      res.status(502).json({ error: "Advice model returned an unexpected format." });
+      if (rf.status === 429) {
+        res.status(429).json({ error: "Personalized plans are busy right now. Please wait a moment and try again." });
+        return;
+      }
+      res.status(502).json({ error: "We couldn't finish formatting your photo-specific plan. Please try again." });
       return;
     }
 
