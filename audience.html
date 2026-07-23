@@ -20,6 +20,8 @@
   .row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:12px}.submit{border:0;background:var(--ink);color:var(--paper);border-radius:999px;padding:12px 20px;font-weight:700}.submit:hover{background:var(--accent)}
   .count{font-size:12px;color:var(--ink-soft)}.status{min-height:22px;margin-top:13px;font-size:13px;font-weight:700;color:var(--teal)}.status.problem{color:var(--accent)}
   .blank{min-height:58vh;display:grid;place-items:center;text-align:center}.waiting{max-width:360px}.waiting-mark{width:42px;height:42px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);margin:0 auto 18px;animation:spin 1.2s linear infinite}.waiting h1{font-size:36px;margin-bottom:10px}.waiting p{color:var(--ink-soft);line-height:1.55;margin:0}@keyframes spin{to{transform:rotate(360deg)}}.hidden{display:none}.answer-saved{border-left:4px solid var(--teal);padding:12px 14px;background:rgba(46,110,99,.08);border-radius:0 12px 12px 0;margin-bottom:18px;color:var(--ink-soft);line-height:1.45}
+  .response-wall{margin-top:18px}.wall-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:11px;padding:0 3px}.wall-title{font-family:"Fraunces";font-size:23px}.wall-count{font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .responses{display:grid;gap:9px}.response{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;font-family:"Fraunces";font-size:20px;line-height:1.25;overflow-wrap:anywhere;animation:arrive .35s ease both}.response-empty{border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--ink-soft);font-size:13px}@keyframes arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -37,25 +39,47 @@
       <div class="status" id="status" role="status"></div>
     </form>
   </section>
+  <section id="responseWall" class="response-wall hidden" aria-live="polite">
+    <div class="wall-head"><div class="wall-title">What the room is saying</div><div class="wall-count"><span id="responseCount">0</span> responses</div></div>
+    <div id="responses" class="responses"></div>
+  </section>
 </main>
 <script>
   const clientId=localStorage.getItem("clarity_audience_id")||`aud_${crypto.randomUUID().replace(/-/g,"")}`;
   localStorage.setItem("clarity_audience_id",clientId);
   const answers=JSON.parse(localStorage.getItem("clarity_audience_answers")||"{}");
-  const blank=document.getElementById("blank"),card=document.getElementById("questionCard"),question=document.getElementById("question"),answer=document.getElementById("answer"),status=document.getElementById("status"),savedAnswer=document.getElementById("savedAnswer");
-  let activeQuestionId="",loadingState=false;
+  const blank=document.getElementById("blank"),card=document.getElementById("questionCard"),question=document.getElementById("question"),answer=document.getElementById("answer"),status=document.getElementById("status"),savedAnswer=document.getElementById("savedAnswer"),responseWall=document.getElementById("responseWall"),responses=document.getElementById("responses");
+  let activeQuestionId="",loadingState=false,lastResponseSignature="";
 
+  function escapeHTML(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
   function saveAnswers(){localStorage.setItem("clarity_audience_answers",JSON.stringify(answers))}
   function showStatus(text,problem=false){status.textContent=text;status.classList.toggle("problem",problem)}
+  function renderResponses(items){
+    document.getElementById("responseCount").textContent=items.length;
+    const signature=items.map(item=>`${item.id}:${item.answer}`).join("|");
+    if(signature===lastResponseSignature)return;
+    lastResponseSignature=signature;
+    responses.innerHTML=items.length
+      ?items.map(item=>`<article class="response">${escapeHTML(item.answer)}</article>`).join("")
+      :`<div class="response-empty">Be the first to answer.</div>`;
+  }
+  async function loadResponses(){
+    if(!activeQuestionId)return;
+    try{
+      const response=await fetch(`/api/audience-responses?questionId=${encodeURIComponent(activeQuestionId)}`,{cache:"no-store"});
+      const data=await response.json();
+      if(response.ok)renderResponses(Array.isArray(data.responses)?data.responses:[]);
+    }catch{}
+  }
   function renderState(state){
     const questionId=String(state.questionId||""),text=String(state.question||"");
-    if(!state.active||!questionId||!text){activeQuestionId="";card.classList.add("hidden");blank.classList.remove("hidden");return}
+    if(!state.active||!questionId||!text){activeQuestionId="";lastResponseSignature="";card.classList.add("hidden");responseWall.classList.add("hidden");blank.classList.remove("hidden");return}
     if(questionId!==activeQuestionId){
-      activeQuestionId=questionId;question.textContent=text;answer.value=answers[questionId]||"";
+      activeQuestionId=questionId;lastResponseSignature="";question.textContent=text;answer.value=answers[questionId]||"";
       savedAnswer.innerHTML=answers[questionId]?`<div class="answer-saved">Your answer: ${answers[questionId].replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`:"";
       document.getElementById("characterCount").textContent=answer.value.length;showStatus("");
     }
-    blank.classList.add("hidden");card.classList.remove("hidden");
+    blank.classList.add("hidden");card.classList.remove("hidden");responseWall.classList.remove("hidden");loadResponses();
   }
   async function loadState(){
     if(loadingState)return;loadingState=true;
@@ -74,10 +98,10 @@
     try{
       const response=await fetch("/api/audience-responses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({questionId:activeQuestionId,clientId,answer:value})});
       const data=await response.json();if(!response.ok)throw new Error(data.error||"Answer could not be sent.");
-      answers[activeQuestionId]=value;saveAnswers();savedAnswer.innerHTML=`<div class="answer-saved">Your answer: ${value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`;showStatus("Your answer was sent.");
+      answers[activeQuestionId]=value;saveAnswers();savedAnswer.innerHTML=`<div class="answer-saved">Your answer: ${escapeHTML(value)}</div>`;showStatus("Your answer was sent.");loadResponses();
     }catch(error){showStatus(error.message||"Answer could not be sent.",true)}
   });
-  loadState();setInterval(loadState,1400);
+  loadState();setInterval(loadState,1400);setInterval(loadResponses,1100);
 </script>
 </body>
 </html>
