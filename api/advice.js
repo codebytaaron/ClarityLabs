@@ -128,6 +128,40 @@ async function repairPlan(apiKey, malformedText) {
   return { response, data };
 }
 
+function sentenceFromValue(value) {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object") return "";
+  return Object.values(value)
+    .filter(v => typeof v === "string" || typeof v === "number")
+    .map(String)
+    .join(" — ")
+    .trim();
+}
+
+function normalizeRoutine(routine) {
+  if (Array.isArray(routine)) return routine.map(sentenceFromValue).filter(Boolean).slice(0, 8);
+  if (!routine || typeof routine !== "object") return [];
+  const steps = [];
+  for (const [time, value] of Object.entries(routine)) {
+    const label = time.charAt(0).toUpperCase() + time.slice(1);
+    const items = Array.isArray(value) ? value : [value];
+    for (const item of items) {
+      const sentence = sentenceFromValue(item);
+      if (sentence) steps.push(`${label}: ${sentence}`);
+    }
+  }
+  return steps.slice(0, 8);
+}
+
+function normalizeProductTier(value) {
+  const items = Array.isArray(value)
+    ? value
+    : value && typeof value === "object"
+      ? Object.values(value)
+      : [];
+  return items.filter(item => item && typeof item === "object").slice(0, 4);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -222,13 +256,13 @@ and clearly acknowledge any lighting/framing limitation.`;
     }
 
     const products = plan.products && typeof plan.products === "object" ? plan.products : {};
-    const tier = t => Array.isArray(products[t]) ? products[t] : [];
+    const tier = t => normalizeProductTier(products[t]);
 
     res.status(200).json({
       summary: plan.summary || "",
       visualFindings: Array.isArray(plan.visualFindings) ? plan.visualFindings.slice(0, 4) : [],
       imageQuality: plan.imageQuality || "",
-      routine: Array.isArray(plan.routine) ? plan.routine : [],
+      routine: normalizeRoutine(plan.routine),
       products: { budget: tier("budget"), mid: tier("mid"), premium: tier("premium") },
       derm: plan.derm || ""
     });
