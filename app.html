@@ -92,7 +92,7 @@
   .total{font-family:var(--mono);font-weight:600;font-size:58px;line-height:1;letter-spacing:-.03em;margin-top:8px}
   .total small{font-size:13px;font-weight:500;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-left:10px}
 
-  /* severity */
+  /* visible activity */
   .sev{margin-top:22px;border-top:1px solid var(--line);padding-top:20px;display:none}
   .sev.on{display:block}
   .sev .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
@@ -124,6 +124,13 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .adv-btn{display:inline-flex;align-items:center;gap:10px;margin-top:4px}
   .advice-summary{font-size:16px;line-height:1.6;margin:0 0 24px}
+  .visual-findings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 8px;padding:0;list-style:none}
+  .visual-findings li{background:var(--paper-2);border:1px solid var(--line);border-radius:13px;padding:12px 14px;
+    font-size:13.5px;line-height:1.45;display:flex;gap:9px}
+  .visual-findings li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent-2);margin-top:6px;flex:none}
+  .image-quality{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:10px 0 0;padding-left:17px;position:relative}
+  .image-quality::before{content:"◉";position:absolute;left:0;color:var(--accent)}
+  @media(max-width:620px){.visual-findings{grid-template-columns:1fr}}
   .adv-sectitle{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-family:"Inter";font-weight:700;margin:24px 0 12px}
   .adv-block ol{margin:0;padding-left:20px}
   .adv-block ol li{font-size:14.5px;line-height:1.5;margin-bottom:9px}
@@ -271,7 +278,7 @@
     <div id="whoamiSlot"></div>
     <div class="kick">Analyze</div>
     <h1 id="headTitle">Drop a photo. <span class="it">See</span> what's there.</h1>
-    <p>Your image is analyzed privately and never stored. Clarity Labs surfaces every blemish it finds, rates the severity, and builds you a tailored plan.</p>
+    <p>Your image is sent securely for analysis and not saved by Clarity Labs. We surface the visible findings, summarize their activity, and build you a tailored plan.</p>
   </div>
 
   <div class="grid">
@@ -287,7 +294,7 @@
       <div id="drop" class="drop">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
         <strong>Drop a photo or click to upload</strong>
-        <span>JPG or PNG · analyzed privately, not stored</span>
+        <span>JPG, PNG, or WebP · not saved by Clarity Labs</span>
       </div>
       <input id="file" type="file" accept="image/*" hidden />
 
@@ -318,7 +325,7 @@
           <span class="score" id="sevScore"></span>
         </div>
         <div class="meter"><div class="marker" id="sevMarker"></div></div>
-        <div class="scale"><span>Clear</span><span>Mild</span><span>Moderate</span><span>Severe</span></div>
+        <div class="scale"><span>None seen</span><span>Low</span><span>Medium</span><span>Higher</span></div>
       </div>
 
       <div class="breakdown" id="breakdown">
@@ -342,6 +349,12 @@
 
       <div id="adviceBody" style="display:none">
         <p class="advice-summary" id="advSummary"></p>
+
+        <div class="adv-block">
+          <div class="adv-sectitle">What this photo shows</div>
+          <ul class="visual-findings" id="advFindings"></ul>
+          <p class="image-quality" id="advImageQuality"></p>
+        </div>
 
         <div class="adv-block">
           <div class="adv-sectitle">Your routine</div>
@@ -492,13 +505,14 @@
   const fallbackColor="#E8563A";
   // Maximum sensitivity — surface every blemish the model can find (like the original powerful mode).
   const CONFIDENCE=0, OVERLAP=60;
-  // Severity weighting — inflamed lesions count for more.
+  // Visual-activity weighting — inflamed findings count for more. This is an
+  // app sorting aid, not a medical severity score.
   const WEIGHTS={nodules:4,pustules:3,papules:2,"dark spot":1.5,whiteheads:1,blackheads:1};
 
   const $=id=>document.getElementById(id);
   const drop=$("drop"),fileInput=$("file"),stage=$("stage"),canvas=$("canvas"),ctx=canvas.getContext("2d");
   const loading=$("loading"),loadLbl=$("loadLbl"),errBox=$("err");
-  let currentImage=null,currentBase64=null,lastPredictions=[],lastCounts={},lastSev=null;
+  let currentImage=null,currentBase64=null,currentImageType="image/jpeg",lastPredictions=[],lastCounts={},lastSev=null;
 
   drop.addEventListener("click",()=>fileInput.click());
   drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
@@ -508,14 +522,29 @@
 
   function loadFile(file){
     hideErr();
+    if(!/^image\/(jpeg|png|webp)$/i.test(file.type)){showErr("Please choose a JPG, PNG, or WebP image.");return;}
     const reader=new FileReader();
     reader.onload=ev=>{
-      const dataUrl=ev.target.result;
-      currentBase64=dataUrl.split(",")[1];
       const img=new Image();
-      img.onload=()=>{currentImage=img;lastPredictions=[];drop.style.display="none";stage.style.display="block";draw();resetResults()};
-      img.src=dataUrl;
+      img.onload=()=>{
+        // Normalize large camera photos before either cloud model sees them. Both
+        // services then analyze the exact same pixels without oversized requests.
+        const maxSide=1600,ratio=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+        const w=Math.max(1,Math.round(img.naturalWidth*ratio)),h=Math.max(1,Math.round(img.naturalHeight*ratio));
+        const prep=document.createElement("canvas");prep.width=w;prep.height=h;
+        prep.getContext("2d").drawImage(img,0,0,w,h);
+        const normalized=prep.toDataURL("image/jpeg",.86);
+        currentBase64=normalized.split(",")[1];currentImageType="image/jpeg";
+        const displayImage=new Image();
+        displayImage.onload=()=>{
+          currentImage=displayImage;lastPredictions=[];drop.style.display="none";stage.style.display="block";draw();resetResults();
+        };
+        displayImage.src=normalized;
+      };
+      img.onerror=()=>showErr("That image could not be opened. Please try another.");
+      img.src=ev.target.result;
     };
+    reader.onerror=()=>showErr("That image could not be read. Please try another.");
     reader.readAsDataURL(file);
   }
 
@@ -539,7 +568,7 @@
 
   $("run").addEventListener("click",analyze);
   $("reset").addEventListener("click",()=>{
-    currentImage=null;currentBase64=null;lastPredictions=[];
+    currentImage=null;currentBase64=null;currentImageType="image/jpeg";lastPredictions=[];
     stage.style.display="none";drop.style.display="block";fileInput.value="";resetResults();
   });
 
@@ -565,10 +594,10 @@
   function computeSeverity(counts){
     let score=0;for(const [cls,n] of Object.entries(counts))score+=(WEIGHTS[cls]||1)*n;
     let level,pct;
-    if(score===0){level="Clear";pct=2}
-    else if(score<=6){level="Mild";pct=22}
-    else if(score<=16){level="Moderate";pct=58}
-    else{level="Severe";pct=92}
+    if(score===0){level="No visible activity";pct=2}
+    else if(score<=6){level="Low visible activity";pct=22}
+    else if(score<=16){level="Medium visible activity";pct=58}
+    else{level="Higher visible activity";pct=92}
     return {score:Math.round(score),level,pct};
   }
 
@@ -596,10 +625,10 @@
       $("breakdown").innerHTML='<div class="empty-note">No blemishes detected. If you expected some, try a clearer, closer, well-lit photo.</div>';
       return;
     }
-    // severity
+    // neutral visible-activity summary (not a medical severity rating)
     $("sev").classList.add("on");
     $("sevLevel").textContent=sev.level;
-    $("sevScore").textContent="severity score "+sev.score;
+    $("sevScore").textContent="scan pattern index "+sev.score+" · informational";
     $("sevMarker").style.left=sev.pct+"%";
     // breakdown
     $("breakdown").innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([cls,n])=>{
@@ -620,7 +649,11 @@
     $("adviceBody").style.display="none";
     try{
       const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score,profile:PROFILE||undefined})});
+        body:JSON.stringify({
+          image:currentBase64,imageType:currentImageType,predictions:lastPredictions,
+          counts:lastCounts,total:lastPredictions.length,activity:lastSev.level,score:lastSev.score,
+          profile:PROFILE||undefined
+        })});
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"Could not generate advice");
       renderAdvice(data);
@@ -636,6 +669,11 @@
     $("adviceLoading").style.display="none";
     $("adviceBody").style.display="block";
     $("advSummary").textContent=d.summary||"";
+    const findings=Array.isArray(d.visualFindings)?d.visualFindings:[];
+    $("advFindings").innerHTML=findings.map(s=>`<li>${escapeHtml(s)}</li>`).join("");
+    $("advFindings").style.display=findings.length?"grid":"none";
+    $("advImageQuality").textContent=d.imageQuality||"";
+    $("advImageQuality").style.display=d.imageQuality?"block":"none";
     $("advRoutine").innerHTML=(d.routine||[]).map(s=>`<li>${escapeHtml(s)}</li>`).join("");
     const p=d.products||{};
     renderTier("tierBudget",p.budget);
