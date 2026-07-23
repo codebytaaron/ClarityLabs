@@ -7,6 +7,7 @@
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = process.env.GROQ_VISION_MODEL || "qwen/qwen3.6-27b";
+const REPAIR_MODEL = process.env.GROQ_REPAIR_MODEL || "llama-3.3-70b-versatile";
 const MAX_IMAGE_BASE64_LENGTH = 6_000_000;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -68,9 +69,12 @@ function parsePlanText(value) {
   if (value && typeof value === "object") return value;
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1] || "";
+  const afterThinking = trimmed.includes("</think>") ? trimmed.split("</think>").pop().trim() : "";
   const candidates = [
     trimmed,
-    trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""),
+    fenced,
+    afterThinking,
     trimmed.slice(trimmed.indexOf("{"), trimmed.lastIndexOf("}") + 1)
   ];
   for (const candidate of candidates) {
@@ -83,19 +87,41 @@ function parsePlanText(value) {
   return null;
 }
 
-async function requestPlan(apiKey, messages, strictJson = true) {
+async function requestPlan(apiKey, messages) {
   const body = {
     model: MODEL,
-    temperature: strictJson ? 0.2 : 0.1,
+    temperature: 0.1,
     max_completion_tokens: 1800,
     messages
   };
-  if (strictJson) body.response_format = { type: "json_object" };
 
   const response = await fetch(GROQ_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
     body: JSON.stringify(body)
+  });
+  let data = null;
+  try { data = await response.json(); } catch {}
+  return { response, data };
+}
+
+async function repairPlan(apiKey, malformedText) {
+  const response = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: REPAIR_MODEL,
+      temperature: 0.05,
+      max_completion_tokens: 1800,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: "Repair the supplied near-JSON into one valid JSON object. Preserve its meaning and fields. Return JSON only."
+        },
+        { role: "user", content: String(malformedText).slice(0, 20_000) }
+      ]
+    })
   });
   let data = null;
   try { data = await response.json(); } catch {}
@@ -172,15 +198,16 @@ and clearly acknowledge any lighting/framing limitation.`;
       }
     ];
 
-    // Groq can occasionally produce useful content that fails its strict JSON
-    // validator. Recover that generation first; if needed, retry without the
-    // strict response_format and parse JSON (including fenced JSON) ourselves.
-    let { response: rf, data } = await requestPlan(apiKey, messages, true);
-    let plan = parsePlanText(data?.choices?.[0]?.message?.content)
-      || parsePlanText(data?.error?.failed_generation);
+    // Avoid Groq's strict vision JSON validator: it can reject a useful answer
+    // before we receive it. Parse tolerant vision output locally. Only when that
+    // output is malformed do we ask a smaller text-only model to repair the text;
+    // the image is never scanned twice.
+    let { response: rf, data } = await requestPlan(apiKey, messages);
+    const rawPlan = data?.choices?.[0]?.message?.content || data?.error?.failed_generation || "";
+    let plan = parsePlanText(rawPlan);
 
-    if (!plan) {
-      ({ response: rf, data } = await requestPlan(apiKey, messages, false));
+    if (!plan && rawPlan) {
+      ({ response: rf, data } = await repairPlan(apiKey, rawPlan));
       plan = parsePlanText(data?.choices?.[0]?.message?.content)
         || parsePlanText(data?.error?.failed_generation);
     }
