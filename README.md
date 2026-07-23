@@ -6,7 +6,7 @@ Users can upload a clear photo, view detected blemishes with labels and bounding
 
 > Clarity Labs is an educational prototype and is not a medical diagnostic tool.
 
-## Live Demo
+## Demo
 
 [Launch Clarity Labs](https://anche-gamma.vercel.app)
 
@@ -18,7 +18,7 @@ Users can upload a clear photo, view detected blemishes with labels and bounding
 - Count blemishes by type
 - Summarize visible activity without presenting a medical severity rating
 - Generate a personalized skincare routine
-- Run an unlisted audience-facing deck with automatic joining, real-time polls, live questions, and feedback
+- Run an unlisted audience-facing deck with automatic joining, synchronized polls, questions, and feedback
 - Protect private API keys through serverless endpoints
 - Work across desktop and mobile devices
 
@@ -64,8 +64,10 @@ Clarity Labs is trained to identify:
 │   ├── advice.js
 │   └── detect.js
 ├── app.html
+├── IMG_6166.jpeg
 ├── index.html
 ├── join.html
 ├── presentation.html      # Unlisted presenter-only route
 ├── README.md
+├── team.jpg
 └── vercel.json  

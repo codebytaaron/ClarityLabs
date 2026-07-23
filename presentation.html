@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clarity Labs — Live Presentation</title>
-<meta name="description" content="A short, interactive presentation of Clarity Labs with live audience polls and questions." />
+<title>Clarity Labs — Presentation</title>
+<meta name="description" content="A short, interactive presentation of Clarity Labs with audience polls and questions." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -30,8 +30,6 @@
   .mark::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
   .mode{font-size:11px;text-transform:uppercase;letter-spacing:.13em;font-weight:700;color:var(--ink-soft)}
   .room-status{justify-self:end;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
-  .live-dot{width:9px;height:9px;border-radius:50%;background:var(--gold)}
-  .live-dot.ready{background:var(--teal);box-shadow:0 0 0 5px rgba(46,110,99,.12)}
   .slides{position:relative;min-height:0}
   .slide{position:absolute;inset:0;overflow:auto;padding:clamp(26px,4.5vh,52px) clamp(28px,7vw,104px);
     display:grid;align-items:center;opacity:0;visibility:hidden;transform:translateX(24px);
@@ -147,8 +145,8 @@
 <main class="deck">
   <header class="topbar">
     <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>Clarity Labs</a>
-    <span class="mode">Live presentation</span>
-    <div class="room-status"><span class="live-dot" id="liveDot"></span><span id="connectionText">Starting room…</span></div>
+    <span class="mode">Presenter view</span>
+    <div class="room-status"><span id="connectionText">Audience: 0</span></div>
   </header>
   <button class="full-btn" id="fullscreen" type="button">Full screen</button>
 
@@ -164,11 +162,11 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Join live">
+    <section class="slide" data-title="Join the slideshow">
       <div class="inner join-grid">
         <div>
-          <div class="eyebrow">Join the presentation</div>
-          <h2>Your answers go <span class="accent">live.</span></h2>
+          <div class="eyebrow">Join the slideshow</div>
+          <h2>Add your <span class="accent">voice.</span></h2>
           <div class="join-url">anche-gamma.vercel.app/join.html</div>
           <div>No code needed. Scan, add a nickname, and join.</div>
           <div class="connected-line" id="joinCount">Waiting for the first person…</div>
@@ -180,9 +178,9 @@
     <section class="slide" data-title="Audience poll" data-poll="challenge">
       <div class="inner poll-layout">
         <div>
-          <div class="eyebrow">Live poll</div>
+          <div class="eyebrow">Audience poll</div>
           <h2 class="poll-question">What makes skincare advice hardest?</h2>
-          <div class="poll-meta"><span><b data-poll-total="challenge">0</b> answers</span><span>Updates live</span></div>
+          <div class="poll-meta"><span><b data-poll-total="challenge">0</b> answers</span><span>Audience responses</span></div>
         </div>
         <div>
           <div class="bars" data-poll-bars="challenge"></div>
@@ -216,12 +214,12 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Live demo">
+    <section class="slide" data-title="Product demo">
       <div class="inner demo">
         <div>
-          <div class="eyebrow">Live demo</div>
+          <div class="eyebrow">Product demo</div>
           <h2>One photo.<br><span class="accent">One personalized result.</span></h2>
-          <a class="launch" href="app.html" target="_blank" rel="noopener">Open the live scan</a>
+          <a class="launch" href="app.html" target="_blank" rel="noopener">Open the scan</a>
         </div>
         <div class="demo-list">
           <div class="demo-step"><b>1</b><span>Upload a clear photo</span></div>
@@ -234,9 +232,9 @@
     <section class="slide" data-title="Audience poll" data-poll="value">
       <div class="inner poll-layout">
         <div>
-          <div class="eyebrow">Live poll</div>
+          <div class="eyebrow">Audience poll</div>
           <h2 class="poll-question">Which feature creates the most value?</h2>
-          <div class="poll-meta"><span><b data-poll-total="value">0</b> answers</span><span>Updates live</span></div>
+          <div class="poll-meta"><span><b data-poll-total="value">0</b> answers</span><span>Audience responses</span></div>
         </div>
         <div>
           <div class="bars" data-poll-bars="value"></div>
@@ -260,12 +258,12 @@
     <section class="slide" data-title="Audience questions" data-interaction="questions">
       <div class="inner questions">
         <div>
-          <div class="eyebrow">Live Q&amp;A</div>
+          <div class="eyebrow">Audience Q&amp;A</div>
           <h2>What do you <span class="accent">want to know?</span></h2>
           <p class="lead">Submit from the same audience page.</p>
         </div>
         <div class="question-feed" id="questionFeed">
-          <div class="empty-question">Audience questions will appear here in real time.</div>
+          <div class="empty-question">Audience questions will appear here.</div>
         </div>
       </div>
     </section>
@@ -292,7 +290,7 @@
             <div class="rating-label"><b id="feedbackCount">0</b> responses · out of 5</div>
           </div>
           <div class="feedback-feed" id="feedbackFeed">
-            <div class="empty-question">Audience feedback will appear here in real time.</div>
+            <div class="empty-question">Audience feedback will appear here.</div>
           </div>
         </div>
       </div>
@@ -352,9 +350,8 @@
   function broadcastState(){for(const conn of connections.values())if(conn.open)sendState(conn)}
   function renderConnection(){
     const n=connections.size;
-    document.getElementById("liveDot").classList.toggle("ready",roomReady);
-    document.getElementById("connectionText").textContent=roomReady?`${n} audience connected`:"Connecting live room…";
-    document.getElementById("joinCount").textContent=n?`${n} ${n===1?"person":"people"} connected and ready`:"Waiting for the first person…";
+    document.getElementById("connectionText").textContent=`Audience: ${n}`;
+    document.getElementById("joinCount").textContent=n?`${n} ${n===1?"person":"people"} joined`:"Waiting for the first person…";
   }
   function renderPoll(id){
     const poll=POLLS[id],map=pollVotes(id),total=map.size;
@@ -371,7 +368,7 @@
     const feed=document.getElementById("questionFeed");
     const items=[...questions.values()].sort((a,b)=>b.time-a.time).slice(0,8);
     feed.innerHTML=items.length?items.map(q=>`<article class="question"><p>${q.text}</p><span>${q.name||"Anonymous"}</span></article>`).join("")
-      :'<div class="empty-question">Audience questions will appear here in real time.</div>';
+      :'<div class="empty-question">Audience questions will appear here.</div>';
   }
   function renderFeedback(){
     const items=[...feedback.values()].sort((a,b)=>b.time-a.time);
@@ -381,7 +378,7 @@
     const feed=document.getElementById("feedbackFeed");
     const comments=items.filter(item=>item.text).slice(0,7);
     feed.innerHTML=comments.length?comments.map(item=>`<div class="feedback-item">${item.text}<span>${item.name||"Anonymous"} · ${item.rating}/5</span></div>`).join("")
-      :'<div class="empty-question">Audience feedback will appear here in real time.</div>';
+      :'<div class="empty-question">Audience feedback will appear here.</div>';
   }
   function handleMessage(conn,data){
     if(!data||typeof data!=="object")return;
@@ -444,7 +441,7 @@
     if(message.payload?.type!=="join")handleMessage(conn,message.payload);
   };
   function startRoom(){
-    if(typeof Peer!=="function"){document.getElementById("connectionText").textContent="Live service unavailable";return}
+    if(typeof Peer!=="function"){document.getElementById("connectionText").textContent="Audience connection unavailable";return}
     peer=new Peer(hostId,{host:"0.peerjs.com",port:443,path:"/",secure:true,debug:1});
     peer.on("open",()=>{roomReady=true;renderConnection()});
     peer.on("connection",acceptConnection);
@@ -452,7 +449,7 @@
     peer.on("error",error=>{
       roomReady=false;
       renderConnection();
-      document.getElementById("connectionText").textContent=error.type==="unavailable-id"?"Room already open in another tab":"Live room connection issue";
+      document.getElementById("connectionText").textContent=error.type==="unavailable-id"?"Presenter already open":"Audience connection issue";
     });
   }
   function show(index){

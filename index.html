@@ -119,8 +119,14 @@
 
   /* TEAM */
   .team{background:var(--paper-2)}
-  .team-photo{width:100%;max-width:620px;margin:0 auto 24px;border-radius:22px;overflow:hidden;box-shadow:0 40px 80px -34px rgba(70,40,20,.55);border:1px solid var(--line)}
-  .team-photo img{width:100%;display:block}
+  .team-carousel{width:100%;max-width:620px;margin:0 auto 24px;position:relative}
+  .team-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;border-radius:22px;box-shadow:0 40px 80px -34px rgba(70,40,20,.55);border:1px solid var(--line);scrollbar-width:none}
+  .team-track::-webkit-scrollbar{display:none}
+  .team-slide{flex:0 0 100%;scroll-snap-align:start;margin:0;background:var(--card);aspect-ratio:16/10;overflow:hidden}
+  .team-slide img{width:100%;height:100%;display:block;object-fit:cover}
+  .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border:1px solid rgba(255,255,255,.65);border-radius:50%;background:rgba(23,20,15,.7);color:#fff;font-size:22px;display:grid;place-items:center;backdrop-filter:blur(8px);z-index:2}
+  .carousel-btn:hover{background:var(--accent)}.carousel-btn.prev{left:14px}.carousel-btn.next{right:14px}
+  .carousel-dots{display:flex;justify-content:center;gap:7px;margin-top:14px}.carousel-dot{width:8px;height:8px;border:0;border-radius:50%;background:#BEB5A5;padding:0}.carousel-dot.active{background:var(--accent)}
   .team-names{text-align:center;font-family:"Fraunces";font-size:clamp(17px,2.3vw,22px);color:var(--ink);margin:0}
   .members{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
   @media(max-width:720px){.members{grid-template-columns:repeat(2,1fr)}}
@@ -152,7 +158,7 @@
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#types">What it detects</a>
-      <a class="live-link" href="join.html">Join Live</a>
+      <a class="live-link" href="join.html">Join Slideshow</a>
       <a href="#team">Team</a>
       <a class="nav-cta" href="app.html">Launch Tool</a>
     </div>
@@ -250,7 +256,15 @@
       <h2>Built for AI Launchpad at Babson.</h2>
       <p>A student project putting a real computer-vision model in front of real people.</p>
     </div>
-    <div class="team-photo r"><img src="team.jpg" alt="The Clarity Labs team" onerror="window.teamPhotoFail&&window.teamPhotoFail()"></div>
+    <div class="team-carousel r" id="teamCarousel" aria-label="Clarity Labs team photos">
+      <div class="team-track" id="teamTrack">
+        <figure class="team-slide"><img src="team.jpg" alt="The Clarity Labs team" onerror="window.carouselImageFail&&window.carouselImageFail(this)"></figure>
+        <figure class="team-slide"><img src="IMG_6166.jpg" alt="The Clarity Labs team at AI Launchpad" data-candidates="IMG_6166.jpg|IMG_6166.jpeg|IMG_6166.JPG|IMG_6166.png" data-candidate-index="0" onerror="window.carouselImageFail&&window.carouselImageFail(this)"></figure>
+      </div>
+      <button class="carousel-btn prev" id="teamPrev" type="button" aria-label="Previous team photo">‹</button>
+      <button class="carousel-btn next" id="teamNext" type="button" aria-label="Next team photo">›</button>
+      <div class="carousel-dots" id="teamDots" aria-label="Choose a team photo"></div>
+    </div>
     <p class="team-names r" id="teamNames">Teddy Aaron &nbsp;·&nbsp; June Meyer &nbsp;·&nbsp; Rikki Chatterjee &nbsp;·&nbsp; Kai Izzi</p>
     <div class="members" id="members" style="display:none"></div>
   </div>
@@ -295,18 +309,36 @@
       <p class="desc">${c.desc}</p>
     </div>`).join("");
 
-  // team — monogram cards are the fallback if team.jpg is missing
+  // team — swipeable photos with monogram cards as the final fallback
   document.getElementById("members").innerHTML=TEAM.map(m=>`
     <div class="member r in">
       <div class="mono" style="background:${m.color}">${initials(m.name)}</div>
       <div class="mn">${m.name}</div>
       <div class="mr">Babson · AI Launchpad</div>
     </div>`).join("");
-  window.teamPhotoFail=function(){
-    const ph=document.querySelector(".team-photo"); if(ph)ph.remove();
-    const nm=document.getElementById("teamNames"); if(nm)nm.remove();
-    document.getElementById("members").style.display="grid";
+  const teamCarousel=document.getElementById("teamCarousel"),teamTrack=document.getElementById("teamTrack"),teamDots=document.getElementById("teamDots");
+  function teamSlides(){return [...teamTrack.querySelectorAll(".team-slide")]}
+  function renderTeamCarousel(){
+    const slides=teamSlides();
+    if(!slides.length){
+      teamCarousel.remove();document.getElementById("teamNames")?.remove();document.getElementById("members").style.display="grid";return
+    }
+    teamDots.innerHTML=slides.map((_,i)=>`<button class="carousel-dot ${i===0?"active":""}" type="button" aria-label="Show team photo ${i+1}" data-team-slide="${i}"></button>`).join("");
+    const multiple=slides.length>1;
+    document.getElementById("teamPrev").style.display=multiple?"grid":"none";document.getElementById("teamNext").style.display=multiple?"grid":"none";teamDots.style.display=multiple?"flex":"none";
+    teamDots.querySelectorAll("[data-team-slide]").forEach(button=>button.addEventListener("click",()=>teamTrack.scrollTo({left:Number(button.dataset.teamSlide)*teamTrack.clientWidth,behavior:"smooth"})))
+  }
+  window.carouselImageFail=function(image){
+    const candidates=(image.dataset.candidates||"").split("|").filter(Boolean),next=Number(image.dataset.candidateIndex||0)+1;
+    if(next<candidates.length){image.dataset.candidateIndex=String(next);image.src=candidates[next];return}
+    image.closest(".team-slide")?.remove();renderTeamCarousel();
   };
+  document.getElementById("teamPrev").addEventListener("click",()=>teamTrack.scrollBy({left:-teamTrack.clientWidth,behavior:"smooth"}));
+  document.getElementById("teamNext").addEventListener("click",()=>teamTrack.scrollBy({left:teamTrack.clientWidth,behavior:"smooth"}));
+  let teamScrollFrame;
+  teamTrack.addEventListener("scroll",()=>{cancelAnimationFrame(teamScrollFrame);teamScrollFrame=requestAnimationFrame(()=>{const active=Math.round(teamTrack.scrollLeft/teamTrack.clientWidth);teamDots.querySelectorAll(".carousel-dot").forEach((dot,i)=>dot.classList.toggle("active",i===active))})});
+  renderTeamCarousel();
+  teamTrack.querySelectorAll("img").forEach(image=>{if(image.complete&&!image.naturalWidth)window.carouselImageFail(image)});
 
   // nav + sticky
   const nav=document.getElementById("nav"), sticky=document.getElementById("stickyLaunch");
