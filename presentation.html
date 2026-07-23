@@ -4,12 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Clarity Labs — Presentation</title>
-<meta name="description" content="A short, interactive presentation of Clarity Labs with audience polls and questions." />
+<meta name="description" content="A short presenter-controlled slideshow about Clarity Labs." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
     --paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;--line:#DAD3C4;
@@ -23,7 +21,7 @@
   button,a{font:inherit;color:inherit}a{text-decoration:none}button{cursor:pointer}
   h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.025em}
   .deck{height:100%;display:grid;grid-template-rows:68px 1fr 76px}
-  .topbar{border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  .topbar{border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;align-items:center;
     padding:0 clamp(20px,4vw,56px);background:rgba(242,238,230,.96);position:relative;z-index:20}
   .brand{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;font-weight:500}
   .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden}
@@ -63,6 +61,9 @@
 
   .poll-layout{display:grid;grid-template-columns:minmax(300px,.8fr) 1.2fr;gap:clamp(30px,5vw,72px);align-items:center}
   .poll-question{font-size:clamp(40px,5.2vw,70px)}
+  .discussion-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .discussion-option{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;gap:14px;align-items:center;font-size:17px;font-weight:650}
+  .discussion-option b{width:32px;height:32px;border-radius:10px;background:var(--c);color:#fff;display:grid;place-items:center;flex:none}
   .poll-meta{display:flex;gap:16px;align-items:center;margin-top:22px;font-size:14px;color:var(--ink-soft)}
   .poll-meta b{font-size:22px;color:var(--ink)}
   .bars{display:grid;gap:14px}
@@ -120,13 +121,13 @@
   .nav-btn:disabled{opacity:.35;cursor:not-allowed}.full-btn{position:fixed;right:24px;top:14px;z-index:30;font-size:12px}
 
   @media(max-width:850px){
-    .topbar{grid-template-columns:1fr auto}.mode{display:none}.cover,.join-grid,.poll-layout,.demo,.questions,.feedback-layout{grid-template-columns:1fr}
+    .topbar{grid-template-columns:1fr}.mode{display:none}.cover,.poll-layout,.demo,.questions{grid-template-columns:1fr}
     .cover-side,.qr{display:none}.cards,.flow,.safety{grid-template-columns:1fr}.slide{align-items:start}
     .hint,.full-btn{display:none}.controls{grid-template-columns:1fr auto}.question-feed{max-height:none}
   }
   @media(max-width:560px){
     .deck{grid-template-rows:60px 1fr 72px}.slide{padding:25px 20px}.room-status{font-size:11px}.full-btn{display:none}
-    .cards{margin-top:20px}.room-code{font-size:38px}.poll-question{font-size:40px}
+    .cards{margin-top:20px}.poll-question{font-size:40px}.discussion-options{grid-template-columns:1fr}
     .progress{width:90px}.nav-btn{padding:9px 12px}
   }
   @media(max-height:900px) and (min-width:851px){
@@ -146,7 +147,6 @@
   <header class="topbar">
     <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>Clarity Labs</a>
     <span class="mode">Presenter view</span>
-    <div class="room-status"><span id="connectionText">Audience: 0</span></div>
   </header>
   <button class="full-btn" id="fullscreen" type="button">Full screen</button>
 
@@ -162,29 +162,18 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Join the slideshow">
-      <div class="inner join-grid">
-        <div>
-          <div class="eyebrow">Join the slideshow</div>
-          <h2>Add your <span class="accent">voice.</span></h2>
-          <div class="join-url">anche-gamma.vercel.app/join.html</div>
-          <div>No code needed. Scan, add a nickname, and join.</div>
-          <div class="connected-line" id="joinCount">Waiting for the first person…</div>
-        </div>
-        <div class="qr" id="qr" aria-label="QR code for audience join page"></div>
-      </div>
-    </section>
-
-    <section class="slide" data-title="Audience poll" data-poll="challenge">
+    <section class="slide" data-title="Discussion question">
       <div class="inner poll-layout">
         <div>
           <div class="eyebrow">Audience poll</div>
           <h2 class="poll-question">What makes skincare advice hardest?</h2>
-          <div class="poll-meta"><span><b data-poll-total="challenge">0</b> answers</span><span>Audience responses</span></div>
+          <p class="lead">Choose an answer together, then advance.</p>
         </div>
-        <div>
-          <div class="bars" data-poll-bars="challenge"></div>
-          <div class="poll-actions"><button class="reset-poll" type="button" data-reset-poll="challenge">Reset answers</button></div>
+        <div class="discussion-options">
+          <div class="discussion-option"><b style="--c:var(--accent)">A</b>Knowing what I’m seeing</div>
+          <div class="discussion-option"><b style="--c:var(--teal)">B</b>Choosing products</div>
+          <div class="discussion-option"><b style="--c:var(--violet)">C</b>Trusting online advice</div>
+          <div class="discussion-option"><b style="--c:var(--gold)">D</b>Staying consistent</div>
         </div>
       </div>
     </section>
@@ -229,16 +218,18 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Audience poll" data-poll="value">
+    <section class="slide" data-title="Discussion question">
       <div class="inner poll-layout">
         <div>
           <div class="eyebrow">Audience poll</div>
           <h2 class="poll-question">Which feature creates the most value?</h2>
-          <div class="poll-meta"><span><b data-poll-total="value">0</b> answers</span><span>Audience responses</span></div>
+          <p class="lead">Choose an answer together, then advance.</p>
         </div>
-        <div>
-          <div class="bars" data-poll-bars="value"></div>
-          <div class="poll-actions"><button class="reset-poll" type="button" data-reset-poll="value">Reset answers</button></div>
+        <div class="discussion-options">
+          <div class="discussion-option"><b style="--c:var(--accent)">A</b>Visual detection map</div>
+          <div class="discussion-option"><b style="--c:var(--teal)">B</b>Personalized routine</div>
+          <div class="discussion-option"><b style="--c:var(--violet)">C</b>Budget product picks</div>
+          <div class="discussion-option"><b style="--c:var(--blue)">D</b>Safety and limits</div>
         </div>
       </div>
     </section>
@@ -255,15 +246,18 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Audience questions" data-interaction="questions">
+    <section class="slide" data-title="Audience questions">
       <div class="inner questions">
         <div>
           <div class="eyebrow">Audience Q&amp;A</div>
           <h2>What do you <span class="accent">want to know?</span></h2>
-          <p class="lead">Submit from the same audience page.</p>
+          <p class="lead">Take questions from the room.</p>
         </div>
-        <div class="question-feed" id="questionFeed">
-          <div class="empty-question">Audience questions will appear here.</div>
+        <div class="discussion-options">
+          <div class="discussion-option"><b style="--c:var(--accent)">1</b>The model</div>
+          <div class="discussion-option"><b style="--c:var(--teal)">2</b>The product</div>
+          <div class="discussion-option"><b style="--c:var(--violet)">3</b>Privacy and safety</div>
+          <div class="discussion-option"><b style="--c:var(--gold)">4</b>What comes next</div>
         </div>
       </div>
     </section>
@@ -277,181 +271,19 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Audience feedback" data-interaction="feedback">
-      <div class="inner feedback-layout">
-        <div>
-          <div class="eyebrow">One-minute feedback</div>
-          <h2>Help us make it <span class="accent">better.</span></h2>
-          <p class="lead">Rate the experience on your phone. Results update here.</p>
-        </div>
-        <div class="feedback-summary">
-          <div class="rating-card">
-            <div class="rating-number" id="feedbackAverage">—</div>
-            <div class="rating-label"><b id="feedbackCount">0</b> responses · out of 5</div>
-          </div>
-          <div class="feedback-feed" id="feedbackFeed">
-            <div class="empty-question">Audience feedback will appear here.</div>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
 
   <footer class="controls">
-    <div class="progress-wrap"><span class="count" id="count">1 / 11</span><div class="progress"><span id="progress"></span></div></div>
+    <div class="progress-wrap"><span class="count" id="count">1 / 9</span><div class="progress"><span id="progress"></span></div></div>
     <div class="hint">Arrow keys or spacebar to advance</div>
     <div class="navs"><button class="nav-btn" id="prev" type="button">Previous</button><button class="nav-btn primary" id="next" type="button">Next</button></div>
   </footer>
 </main>
 
 <script>
-  const POLLS={
-    challenge:{id:"challenge",question:"What makes skincare advice hardest?",options:[
-      {id:"identify",label:"Knowing what I’m seeing",color:"#E8563A"},
-      {id:"products",label:"Choosing products",color:"#2E6E63"},
-      {id:"trust",label:"Trusting online advice",color:"#7A5CC2"},
-      {id:"routine",label:"Staying consistent",color:"#E4903F"}
-    ]},
-    value:{id:"value",question:"Which feature creates the most value?",options:[
-      {id:"map",label:"Visual detection map",color:"#E8563A"},
-      {id:"plan",label:"Personalized routine",color:"#2E6E63"},
-      {id:"budget",label:"Budget product picks",color:"#7A5CC2"},
-      {id:"safety",label:"Safety and limits",color:"#4A8BB0"}
-    ]}
-  };
-  const hostId="claritylabs-live-event-v2";
-  const joinUrl=`${location.origin}/join.html`;
   const slides=[...document.querySelectorAll(".slide")];
-  const connections=new Map(),votes=new Map(),questions=new Map(),feedback=new Map();
-  const localChannel="BroadcastChannel" in window?new BroadcastChannel("claritylabs-live-event-v2"):null;
   let current=Math.max(0,Math.min(slides.length-1,(Number(new URLSearchParams(location.search).get("slide"))||1)-1));
-  let peer=null,roomReady=false;
 
-  try{new QRCode(document.getElementById("qr"),{text:joinUrl,width:220,height:220,colorDark:"#17140F",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M})}catch{}
-
-  function safeText(value,max=140){return String(value||"").replace(/[<>]/g,"").trim().slice(0,max)}
-  function currentPoll(){
-    const id=slides[current].dataset.poll;
-    return id?POLLS[id]:null;
-  }
-  function currentMode(){
-    if(currentPoll())return "poll";
-    return slides[current].dataset.interaction||"focus";
-  }
-  function pollVotes(id){
-    if(!votes.has(id))votes.set(id,new Map());
-    return votes.get(id);
-  }
-  function broadcast(payload){for(const conn of connections.values())if(conn.open)try{conn.send(payload)}catch{}}
-  function sendState(conn){
-    const poll=currentPoll();
-    conn.send({type:"state",audience:connections.size,mode:currentMode(),poll});
-  }
-  function broadcastState(){for(const conn of connections.values())if(conn.open)sendState(conn)}
-  function renderConnection(){
-    const n=connections.size;
-    document.getElementById("connectionText").textContent=`Audience: ${n}`;
-    document.getElementById("joinCount").textContent=n?`${n} ${n===1?"person":"people"} joined`:"Waiting for the first person…";
-  }
-  function renderPoll(id){
-    const poll=POLLS[id],map=pollVotes(id),total=map.size;
-    const counts=Object.fromEntries(poll.options.map(o=>[o.id,0]));
-    for(const answer of map.values())if(answer in counts)counts[answer]++;
-    const root=document.querySelector(`[data-poll-bars="${id}"]`);
-    root.innerHTML=poll.options.map(option=>{
-      const n=counts[option.id],pct=total?Math.round(n/total*100):0;
-      return `<div class="bar-row"><div class="bar-top"><span class="bar-label">${option.label}</span><span class="bar-value">${pct}% <small>(${n})</small></span></div><div class="bar-track"><div class="bar-fill" style="--c:${option.color};width:${pct}%"></div></div></div>`;
-    }).join("");
-    document.querySelector(`[data-poll-total="${id}"]`).textContent=total;
-  }
-  function renderQuestions(){
-    const feed=document.getElementById("questionFeed");
-    const items=[...questions.values()].sort((a,b)=>b.time-a.time).slice(0,8);
-    feed.innerHTML=items.length?items.map(q=>`<article class="question"><p>${q.text}</p><span>${q.name||"Anonymous"}</span></article>`).join("")
-      :'<div class="empty-question">Audience questions will appear here.</div>';
-  }
-  function renderFeedback(){
-    const items=[...feedback.values()].sort((a,b)=>b.time-a.time);
-    const average=items.length?(items.reduce((sum,item)=>sum+item.rating,0)/items.length).toFixed(1):"—";
-    document.getElementById("feedbackAverage").textContent=average;
-    document.getElementById("feedbackCount").textContent=items.length;
-    const feed=document.getElementById("feedbackFeed");
-    const comments=items.filter(item=>item.text).slice(0,7);
-    feed.innerHTML=comments.length?comments.map(item=>`<div class="feedback-item">${item.text}<span>${item.name||"Anonymous"} · ${item.rating}/5</span></div>`).join("")
-      :'<div class="empty-question">Audience feedback will appear here.</div>';
-  }
-  function handleMessage(conn,data){
-    if(!data||typeof data!=="object")return;
-    const clientKey=safeText(data.clientId,80)||conn.peer;
-    if(data.type==="vote"){
-      const poll=POLLS[data.pollId];
-      if(!poll||!poll.options.some(o=>o.id===data.option))return;
-      pollVotes(poll.id).set(clientKey,data.option);
-      renderPoll(poll.id);
-      conn.send({type:"vote-ack",pollId:poll.id,option:data.option});
-    }
-    if(data.type==="question"){
-      const text=safeText(data.text),name=safeText(data.name,30);
-      if(!text)return;
-      const questionId=safeText(data.questionId,80)||String(Date.now());
-      questions.set(`${clientKey}-${questionId}`,{text,name,time:Date.now()});
-      renderQuestions();
-      conn.send({type:"question-ack"});
-    }
-    if(data.type==="feedback"){
-      const rawRating=Number(data.rating);
-      if(!Number.isFinite(rawRating)||rawRating<1||rawRating>5)return;
-      const rating=Math.round(rawRating);
-      const text=safeText(data.text,180),name=safeText(data.name,30);
-      const feedbackId=safeText(data.feedbackId,80)||String(Date.now());
-      feedback.set(clientKey,{rating,text,name,time:Date.now(),feedbackId});
-      renderFeedback();
-      conn.send({type:"feedback-ack"});
-    }
-  }
-  function acceptConnection(conn){
-    conn.on("open",()=>{
-      const key=safeText(conn.metadata?.clientId,80)||conn.peer;
-      connections.set(key,conn);renderConnection();sendState(conn);broadcastState();
-      conn.on("data",data=>handleMessage(conn,data));
-    });
-    conn.on("close",()=>{
-      const key=safeText(conn.metadata?.clientId,80)||conn.peer;
-      if(connections.get(key)===conn)connections.delete(key);
-      renderConnection();broadcastState();
-    });
-    conn.on("error",()=>{renderConnection()});
-  }
-  function acceptLocal(clientId,name){
-    if(!localChannel||connections.has(clientId))return connections.get(clientId);
-    const conn={
-      peer:clientId,open:true,metadata:{clientId,name},
-      send:payload=>localChannel.postMessage({source:"host",target:clientId,payload})
-    };
-    connections.set(clientId,conn);renderConnection();sendState(conn);broadcastState();
-    return conn;
-  }
-  if(localChannel)localChannel.onmessage=event=>{
-    const message=event.data;
-    if(!message||message.source!=="audience")return;
-    const clientId=safeText(message.clientId,80);
-    if(!clientId)return;
-    if(message.payload?.type==="leave"){connections.delete(clientId);renderConnection();broadcastState();return}
-    const conn=acceptLocal(clientId,safeText(message.payload?.name,30));
-    if(message.payload?.type!=="join")handleMessage(conn,message.payload);
-  };
-  function startRoom(){
-    if(typeof Peer!=="function"){document.getElementById("connectionText").textContent="Audience connection unavailable";return}
-    peer=new Peer(hostId,{host:"0.peerjs.com",port:443,path:"/",secure:true,debug:1});
-    peer.on("open",()=>{roomReady=true;renderConnection()});
-    peer.on("connection",acceptConnection);
-    peer.on("disconnected",()=>{roomReady=false;renderConnection();setTimeout(()=>{try{peer.reconnect()}catch{}},1200)});
-    peer.on("error",error=>{
-      roomReady=false;
-      renderConnection();
-      document.getElementById("connectionText").textContent=error.type==="unavailable-id"?"Presenter already open":"Audience connection issue";
-    });
-  }
   function show(index){
     current=Math.max(0,Math.min(slides.length-1,index));
     slides.forEach((slide,i)=>{const active=i===current;slide.classList.toggle("active",active);slide.setAttribute("aria-hidden",String(!active))});
@@ -462,7 +294,6 @@
     document.getElementById("next").textContent=current===slides.length-1?"End":"Next";
     document.title=`${current+1}. ${slides[current].dataset.title} — Clarity Labs`;
     history.replaceState(null,"",`${location.pathname}?slide=${current+1}`);
-    broadcastState();
   }
   document.getElementById("prev").addEventListener("click",()=>show(current-1));
   document.getElementById("next").addEventListener("click",()=>show(current+1));
@@ -473,15 +304,10 @@
     if(event.key==="Home"){event.preventDefault();show(0)}
     if(event.key==="End"){event.preventDefault();show(slides.length-1)}
   });
-  document.querySelectorAll("[data-reset-poll]").forEach(button=>button.addEventListener("click",()=>{
-    const id=button.dataset.resetPoll;pollVotes(id).clear();renderPoll(id);broadcast({type:"poll-reset",pollId:id})
-  }));
   document.getElementById("fullscreen").addEventListener("click",async()=>{
     try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}
   });
-  for(const id of Object.keys(POLLS))renderPoll(id);
-  renderConnection();renderQuestions();renderFeedback();show(current);startRoom();
-  addEventListener("beforeunload",()=>{try{peer?.destroy();localChannel?.close()}catch{}});
+  show(current);
 </script>
 </body>
 </html>
