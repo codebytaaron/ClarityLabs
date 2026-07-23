@@ -44,7 +44,7 @@ export function cleanText(value, max) {
 }
 
 export function hostAuthorized(req) {
-  const expected = String(process.env.AUDIENCE_BOARD_KEY || process.env.PRESENTATION_HOST_KEY || "");
+  const expected = boardKey();
   const received = String(req.headers["x-presentation-key"] || "");
   if (!expected || expected.length !== received.length) return false;
   let difference = 0;
@@ -52,4 +52,12 @@ export function hostAuthorized(req) {
     difference |= expected.charCodeAt(index) ^ received.charCodeAt(index);
   }
   return difference === 0;
+}
+
+export function boardConfigured() {
+  return Boolean(boardKey());
+}
+
+function boardKey() {
+  return String(process.env.AUDIENCE_BOARD_KEY || process.env.PRESENTATION_HOST_KEY || "");
 }

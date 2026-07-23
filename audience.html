@@ -19,13 +19,13 @@
   input{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px;color:var(--ink);outline:none}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
   .row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:12px}.submit{border:0;background:var(--ink);color:var(--paper);border-radius:999px;padding:12px 20px;font-weight:700}.submit:hover{background:var(--accent)}
   .count{font-size:12px;color:var(--ink-soft)}.status{min-height:22px;margin-top:13px;font-size:13px;font-weight:700;color:var(--teal)}.status.problem{color:var(--accent)}
-  .blank{min-height:58vh}.hidden{display:none}.answer-saved{border-left:4px solid var(--teal);padding:12px 14px;background:rgba(46,110,99,.08);border-radius:0 12px 12px 0;margin-bottom:18px;color:var(--ink-soft);line-height:1.45}
+  .blank{min-height:58vh;display:grid;place-items:center;text-align:center}.waiting{max-width:360px}.waiting-mark{width:42px;height:42px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);margin:0 auto 18px;animation:spin 1.2s linear infinite}.waiting h1{font-size:36px;margin-bottom:10px}.waiting p{color:var(--ink-soft);line-height:1.55;margin:0}@keyframes spin{to{transform:rotate(360deg)}}.hidden{display:none}.answer-saved{border-left:4px solid var(--teal);padding:12px 14px;background:rgba(46,110,99,.08);border-radius:0 12px 12px 0;margin-bottom:18px;color:var(--ink-soft);line-height:1.45}
 </style>
 </head>
 <body>
 <main class="shell">
   <div class="brand"><span class="mark" aria-hidden="true"></span>Clarity Labs</div>
-  <div id="blank" class="blank"></div>
+  <div id="blank" class="blank"><div class="waiting"><div class="waiting-mark"></div><h1>You’re ready.</h1><p>Watch the presentation. The next audience question will appear here automatically.</p></div></div>
   <section id="questionCard" class="question-card hidden" aria-live="polite">
     <div class="eyebrow">Audience question</div>
     <h1 id="question"></h1>

@@ -30,7 +30,13 @@
 <section id="locked" class="locked hidden">
   <div class="tag">Private control board</div>
   <h1>Open your board</h1>
-  <p class="help">Use the private link containing your presentation host key. This page is not linked from the public website.</p>
+  <p class="help" id="unlockHelp">Enter the private audience-board key saved in Vercel. This page is not linked from the public website.</p>
+  <form id="unlockForm">
+    <label for="keyInput">Private board key</label>
+    <input id="keyInput" type="password" autocomplete="current-password" placeholder="Enter your private key">
+    <button class="btn primary" style="width:100%;margin-top:12px" type="submit">Open control board</button>
+    <div id="unlockStatus" class="status problem" role="status"></div>
+  </form>
 </section>
 <main id="app" class="shell hidden">
   <header><div class="brand">Clarity Labs</div><div class="tag">Audience control board</div></header>
@@ -62,7 +68,7 @@
   const params=new URLSearchParams(location.search);
   const suppliedKey=params.get("key");
   if(suppliedKey)sessionStorage.setItem("clarity_board_key",suppliedKey);
-  const hostKey=sessionStorage.getItem("clarity_board_key")||"";
+  let hostKey=sessionStorage.getItem("clarity_board_key")||"";
   if(suppliedKey)history.replaceState(null,"",location.pathname);
 
   const locked=document.getElementById("locked"),app=document.getElementById("app");
@@ -72,6 +78,11 @@
 
   function escapeHTML(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
   function showStatus(text,problem=false){status.textContent=text;status.classList.toggle("problem",problem)}
+  function requireKey(message){
+    sessionStorage.removeItem("clarity_board_key");hostKey="";clearInterval(pollTimer);
+    app.classList.add("hidden");locked.classList.remove("hidden");
+    document.getElementById("unlockStatus").textContent=message||"Enter the correct private board key.";
+  }
   function renderResponses(items){
     document.getElementById("answerCount").textContent=items.length;
     answers.innerHTML=items.length
@@ -83,6 +94,7 @@
       const response=await fetch("/api/audience-question",{cache:"no-store"});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"Board unavailable.");
+      if(!data.boardConfigured)throw new Error("Add AUDIENCE_BOARD_KEY in Vercel, then redeploy.");
       questionId=data.active?String(data.questionId||""):"";
       activeQuestion.textContent=data.active?data.question:"No question is open";
       if(data.active&&!input.value)input.value=data.question;
@@ -108,7 +120,9 @@
         method:"POST",headers:{"Content-Type":"application/json","x-presentation-key":hostKey},
         body:JSON.stringify({questionId:nextId,question,active})
       });
-      const data=await response.json();if(!response.ok)throw new Error(data.error||"Board could not update.");
+      const data=await response.json();
+      if(response.status===401){requireKey(data.error);return}
+      if(!response.ok)throw new Error(data.error||"Board could not update.");
       questionId=data.questionId||"";activeQuestion.textContent=data.active?data.question:"No question is open";
       renderResponses([]);showStatus(data.active?"Question is open on audience phones.":"Audience answers are closed.");
     }catch(error){showStatus(error.message||"Board could not update.",true)}
@@ -117,7 +131,9 @@
     if(!questionId){showStatus("There are no active answers to clear.",true);return}
     try{
       const response=await fetch(`/api/audience-responses?questionId=${encodeURIComponent(questionId)}`,{method:"DELETE",headers:{"x-presentation-key":hostKey}});
-      const data=await response.json();if(!response.ok)throw new Error(data.error||"Answers could not be cleared.");
+      const data=await response.json();
+      if(response.status===401){requireKey(data.error);return}
+      if(!response.ok)throw new Error(data.error||"Answers could not be cleared.");
       renderResponses([]);showStatus("Answers cleared.");
     }catch(error){showStatus(error.message||"Answers could not be cleared.",true)}
   }
@@ -129,9 +145,27 @@
   document.getElementById("closeQuestion").addEventListener("click",()=>setQuestion(false));
   document.getElementById("clearAnswers").addEventListener("click",clearAnswers);
 
-  if(!hostKey){locked.classList.remove("hidden")}else{
-    app.classList.remove("hidden");removeOldPresentationData();loadQuestion();pollTimer=setInterval(loadResponses,1400);
+  function openBoard(){
+    locked.classList.add("hidden");app.classList.remove("hidden");
+    removeOldPresentationData();loadQuestion();clearInterval(pollTimer);pollTimer=setInterval(loadResponses,1400);
   }
+  document.getElementById("unlockForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const candidate=document.getElementById("keyInput").value.trim();
+    const unlockStatus=document.getElementById("unlockStatus");
+    if(!candidate){unlockStatus.textContent="Enter your private key.";return}
+    try{
+      const current=await fetch("/api/audience-question",{cache:"no-store"}).then(response=>response.json());
+      if(!current.boardConfigured)throw new Error("AUDIENCE_BOARD_KEY is missing in Vercel. Add it and redeploy first.");
+      const response=await fetch("/api/audience-question",{
+        method:"POST",headers:{"Content-Type":"application/json","x-presentation-key":candidate},
+        body:JSON.stringify({questionId:current.questionId||"",question:current.question||"",active:Boolean(current.active)})
+      });
+      const data=await response.json();if(!response.ok)throw new Error(data.error||"That key did not work.");
+      hostKey=candidate;sessionStorage.setItem("clarity_board_key",candidate);openBoard();
+    }catch(error){unlockStatus.textContent=error.message||"That key did not work."}
+  });
+  if(!hostKey){locked.classList.remove("hidden")}else{openBoard()}
   addEventListener("beforeunload",()=>clearInterval(pollTimer));
 </script>
 </body>

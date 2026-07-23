@@ -1,4 +1,4 @@
-import { cleanText, configured, hostAuthorized, kv, noStore } from "./_kv.js";
+import { boardConfigured, cleanText, configured, hostAuthorized, kv, noStore } from "./_kv.js";
 
 const EMPTY_STATE = { questionId: "", question: "", active: false, updatedAt: null };
 const STATE_KEY = "clarity:audience:question";
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       const stored = await kv(["GET", STATE_KEY]);
       let state = null;
       try { state = stored ? JSON.parse(stored) : null; } catch { state = null; }
-      res.status(200).json(state || EMPTY_STATE);
+      res.status(200).json({ ...(state || EMPTY_STATE), boardConfigured: boardConfigured() });
       return;
     }
 
