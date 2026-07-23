@@ -2,6 +2,7 @@ import { cleanText, configured, hostAuthorized, kv, noStore } from "./_kv.js";
 
 const EMPTY_STATE = { questionId: "", question: "", active: false, updatedAt: null };
 const STATE_KEY = "clarity:audience:question";
+const MIGRATION_KEY = "clarity:audience:migrated:v1";
 const LEGACY_KEYS = [
   "clarity:presentation:state",
   "clarity:presentation:responses:challenge",
@@ -10,7 +11,12 @@ const LEGACY_KEYS = [
 ];
 
 async function removeLegacyPresentation() {
-  await Promise.all(LEGACY_KEYS.map(key => kv(["DEL", key])));
+  await kv(["DEL", ...LEGACY_KEYS]);
+}
+
+async function migrateLegacyOnce() {
+  const firstRun = await kv(["SETNX", MIGRATION_KEY, "1"]);
+  if (Number(firstRun) === 1) await removeLegacyPresentation();
 }
 
 export default async function handler(req, res) {
@@ -22,6 +28,7 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
+      await migrateLegacyOnce();
       const stored = await kv(["GET", STATE_KEY]);
       let state = null;
       try { state = stored ? JSON.parse(stored) : null; } catch { state = null; }
