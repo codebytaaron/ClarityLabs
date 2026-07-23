@@ -46,18 +46,16 @@ The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`.
 
 ## Audience Board Setup
 
-1. Create a free Supabase project.
-2. Open Supabase **SQL Editor** and run `supabase-presentation.sql`.
-3. Add these environment variables in Vercel for Production, Preview, and Development:
-   - `SUPABASE_URL` — the project URL.
-   - `SUPABASE_SECRET_KEY` — a new Supabase secret key. A legacy `SUPABASE_SERVICE_ROLE_KEY` also works.
-   - `PRESENTATION_HOST_KEY` — a long random password you create for the presenter.
-4. Redeploy the Vercel project.
-5. Open the presenter deck once with `presentation.html?key=YOUR_PRESENTATION_HOST_KEY`. The key is saved for
+1. In Vercel Storage, connect an Upstash Redis database to this project. Vercel supplies
+   `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. The native Upstash names
+   `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are also supported.
+2. Add `PRESENTATION_HOST_KEY` in Vercel — a long random password for the presenter.
+3. Redeploy the Vercel project.
+4. Open the presenter deck once with `presentation.html?key=YOUR_PRESENTATION_HOST_KEY`. The key is saved for
    that browser tab and removed from the visible URL.
-6. Share `audience.html`. There is no login, room code, nickname, or Join button.
+5. Share `audience.html`. There is no login, room code, nickname, or Join button.
 
-The secret Supabase key is used only inside Vercel functions. It is never sent to the audience or presenter browser.
+The storage token and presenter key are used only inside Vercel functions.
 
 ## Detected Classes
 
@@ -75,7 +73,7 @@ Clarity Labs is trained to identify:
 ```text
 .
 ├── api
-│   ├── _supabase.js
+│   ├── _kv.js
 │   ├── advice.js
 │   ├── detect.js
 │   ├── presentation-responses.js
@@ -86,5 +84,4 @@ Clarity Labs is trained to identify:
 ├── index.html
 ├── presentation.html      # Unlisted presenter-only route
 ├── README.md
-├── supabase-presentation.sql
 └── vercel.json  

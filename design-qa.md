@@ -12,8 +12,8 @@
 
 ## Backend
 
-- Vercel API routes are the only clients allowed to access Supabase.
-- Supabase URL and secret key are read from server environment variables.
+- Vercel API routes are the only clients allowed to access Upstash Redis.
+- The Upstash REST URL and token are read from Vercel environment variables.
 - The secret/service-role key is never included in frontend HTML or JavaScript.
 - `PRESENTATION_HOST_KEY` protects slide-state changes and answer clearing.
 - SQL setup enables RLS and grants table access only to `service_role`.
@@ -30,7 +30,7 @@ Tested with separate presenter and audience tabs against an in-memory API stand-
 6. Presenter advanced to the next non-question slide.
 7. Audience page returned to its blank state.
 
-The Vercel API handlers were also tested directly with mocked Supabase REST responses:
+The Vercel API handlers were also tested directly with mocked Upstash REST responses:
 
 - Presenter state GET and authenticated POST passed.
 - Response GET and validated upsert POST passed.
@@ -44,4 +44,4 @@ The Vercel API handlers were also tested directly with mocked Supabase REST resp
 - The team section still displays only `IMG_6166.jpeg`.
 
 final code result: passed
-deployment dependency: Supabase environment variables and SQL setup
+deployment dependency: connect the Upstash database in Vercel and set the presenter key

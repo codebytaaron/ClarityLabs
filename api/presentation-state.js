@@ -1,6 +1,7 @@
-import { cleanText, configured, hostAuthorized, noStore, supabase } from "./_supabase.js";
+import { cleanText, configured, hostAuthorized, kv, noStore } from "./_kv.js";
 
 const EMPTY_STATE = { slide: 1, promptId: "", question: "", updatedAt: null };
+const STATE_KEY = "clarity:presentation:state";
 
 export default async function handler(req, res) {
   noStore(res);
@@ -11,14 +12,10 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
-      const rows = await supabase("presentation_state?id=eq.main&select=slide,prompt_id,question,updated_at&limit=1");
-      const row = Array.isArray(rows) ? rows[0] : null;
-      res.status(200).json(row ? {
-        slide: row.slide,
-        promptId: row.prompt_id || "",
-        question: row.question || "",
-        updatedAt: row.updated_at
-      } : EMPTY_STATE);
+      const stored = await kv(["GET", STATE_KEY]);
+      let state = null;
+      try { state = stored ? JSON.parse(stored) : null; } catch { state = null; }
+      res.status(200).json(state || EMPTY_STATE);
       return;
     }
 
@@ -34,18 +31,9 @@ export default async function handler(req, res) {
         res.status(400).json({ error: "A question is required for an audience prompt." });
         return;
       }
-      await supabase("presentation_state?on_conflict=id", {
-        method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({
-          id: "main",
-          slide,
-          prompt_id: promptId || null,
-          question: question || null,
-          updated_at: new Date().toISOString()
-        })
-      });
-      res.status(200).json({ ok: true, slide, promptId, question });
+      const state = { slide, promptId, question, updatedAt: new Date().toISOString() };
+      await kv(["SET", STATE_KEY, JSON.stringify(state)]);
+      res.status(200).json({ ok: true, ...state });
       return;
     }
 

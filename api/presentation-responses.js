@@ -1,4 +1,23 @@
-import { cleanText, configured, hostAuthorized, noStore, supabase } from "./_supabase.js";
+import { cleanText, configured, hostAuthorized, kv, noStore } from "./_kv.js";
+
+const STATE_KEY = "clarity:presentation:state";
+const responsesKey = (promptId) => `clarity:presentation:responses:${promptId}`;
+
+function parseState(stored) {
+  try { return stored ? JSON.parse(stored) : null; } catch { return null; }
+}
+
+function parseResponses(values) {
+  if (!Array.isArray(values)) return [];
+  const responses = [];
+  for (let index = 0; index < values.length; index += 2) {
+    try {
+      const response = JSON.parse(values[index + 1]);
+      if (response?.answer) responses.push(response);
+    } catch {}
+  }
+  return responses.sort((a, b) => String(a.created_at).localeCompare(String(b.created_at))).slice(0, 80);
+}
 
 export default async function handler(req, res) {
   noStore(res);
@@ -14,10 +33,8 @@ export default async function handler(req, res) {
         res.status(400).json({ error: "promptId is required.", responses: [] });
         return;
       }
-      const rows = await supabase(
-        `presentation_responses?prompt_id=eq.${encodeURIComponent(promptId)}&select=id,answer,created_at&order=created_at.asc&limit=80`
-      );
-      res.status(200).json({ responses: Array.isArray(rows) ? rows : [] });
+      const values = await kv(["HGETALL", responsesKey(promptId)]);
+      res.status(200).json({ responses: parseResponses(values) });
       return;
     }
 
@@ -30,17 +47,18 @@ export default async function handler(req, res) {
         return;
       }
 
-      const states = await supabase("presentation_state?id=eq.main&select=prompt_id&limit=1");
-      if (!Array.isArray(states) || states[0]?.prompt_id !== promptId) {
+      const state = parseState(await kv(["GET", STATE_KEY]));
+      if (state?.promptId !== promptId) {
         res.status(409).json({ error: "That question is no longer active." });
         return;
       }
 
-      await supabase("presentation_responses?on_conflict=prompt_id,client_id", {
-        method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({ prompt_id: promptId, client_id: clientId, answer })
-      });
+      const response = {
+        id: clientId,
+        answer,
+        created_at: new Date().toISOString()
+      };
+      await kv(["HSET", responsesKey(promptId), clientId, JSON.stringify(response)]);
       res.status(200).json({ ok: true });
       return;
     }
@@ -55,10 +73,7 @@ export default async function handler(req, res) {
         res.status(400).json({ error: "promptId is required." });
         return;
       }
-      await supabase(`presentation_responses?prompt_id=eq.${encodeURIComponent(promptId)}`, {
-        method: "DELETE",
-        headers: { Prefer: "return=minimal" }
-      });
+      await kv(["DEL", responsesKey(promptId)]);
       res.status(200).json({ ok: true });
       return;
     }
