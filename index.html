@@ -317,7 +317,14 @@
       <div class="mr">Babson · AI Launchpad</div>
     </div>`).join("");
   const teamCarousel=document.getElementById("teamCarousel"),teamTrack=document.getElementById("teamTrack"),teamDots=document.getElementById("teamDots");
+  let currentTeamSlide=0;
   function teamSlides(){return [...teamTrack.querySelectorAll(".team-slide")]}
+  function showTeamSlide(index){
+    const count=teamSlides().length;if(!count)return;
+    currentTeamSlide=(index+count)%count;
+    teamTrack.scrollLeft=currentTeamSlide*teamTrack.clientWidth;
+    teamDots.querySelectorAll(".carousel-dot").forEach((dot,i)=>dot.classList.toggle("active",i===currentTeamSlide));
+  }
   function renderTeamCarousel(){
     const slides=teamSlides();
     if(!slides.length){
@@ -326,17 +333,18 @@
     teamDots.innerHTML=slides.map((_,i)=>`<button class="carousel-dot ${i===0?"active":""}" type="button" aria-label="Show team photo ${i+1}" data-team-slide="${i}"></button>`).join("");
     const multiple=slides.length>1;
     document.getElementById("teamPrev").style.display=multiple?"grid":"none";document.getElementById("teamNext").style.display=multiple?"grid":"none";teamDots.style.display=multiple?"flex":"none";
-    teamDots.querySelectorAll("[data-team-slide]").forEach(button=>button.addEventListener("click",()=>teamTrack.scrollTo({left:Number(button.dataset.teamSlide)*teamTrack.clientWidth,behavior:"smooth"})))
+    currentTeamSlide=Math.min(currentTeamSlide,slides.length-1);
+    teamDots.querySelectorAll("[data-team-slide]").forEach(button=>button.addEventListener("click",()=>showTeamSlide(Number(button.dataset.teamSlide))))
   }
   window.carouselImageFail=function(image){
     const candidates=(image.dataset.candidates||"").split("|").filter(Boolean),next=Number(image.dataset.candidateIndex||0)+1;
     if(next<candidates.length){image.dataset.candidateIndex=String(next);image.src=candidates[next];return}
     image.closest(".team-slide")?.remove();renderTeamCarousel();
   };
-  document.getElementById("teamPrev").addEventListener("click",()=>teamTrack.scrollBy({left:-teamTrack.clientWidth,behavior:"smooth"}));
-  document.getElementById("teamNext").addEventListener("click",()=>teamTrack.scrollBy({left:teamTrack.clientWidth,behavior:"smooth"}));
+  document.getElementById("teamPrev").addEventListener("click",()=>showTeamSlide(currentTeamSlide-1));
+  document.getElementById("teamNext").addEventListener("click",()=>showTeamSlide(currentTeamSlide+1));
   let teamScrollFrame;
-  teamTrack.addEventListener("scroll",()=>{cancelAnimationFrame(teamScrollFrame);teamScrollFrame=requestAnimationFrame(()=>{const active=Math.round(teamTrack.scrollLeft/teamTrack.clientWidth);teamDots.querySelectorAll(".carousel-dot").forEach((dot,i)=>dot.classList.toggle("active",i===active))})});
+  teamTrack.addEventListener("scroll",()=>{cancelAnimationFrame(teamScrollFrame);teamScrollFrame=requestAnimationFrame(()=>{currentTeamSlide=Math.round(teamTrack.scrollLeft/teamTrack.clientWidth);teamDots.querySelectorAll(".carousel-dot").forEach((dot,i)=>dot.classList.toggle("active",i===currentTeamSlide))})});
   renderTeamCarousel();
   teamTrack.querySelectorAll("img").forEach(image=>{if(image.complete&&!image.naturalWidth)window.carouselImageFail(image)});
 
