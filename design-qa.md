@@ -1,60 +1,47 @@
-# Presentation Mode Design QA
+# Interactive Presentation Design QA
 
-## Evidence
+## Scope
 
-- Source visual truth: `https://anche-gamma.vercel.app/` (existing Clarity Labs homepage).
-- Implementation capture: `http://localhost:4599/presentation.html?slide=1`.
-- Comparison viewport: 1366 × 768 CSS pixels at 1× density.
-- Source screenshot: browser-rendered 1366 × 768 capture of the live homepage.
-- Implementation screenshot: browser-rendered 1366 × 768 capture of presentation slide 1.
-- State: completed hero animation on the source; opening slide on the implementation.
-- Comparison method: source and implementation captures were normalized to equal pixel dimensions and combined side by side in one visual input.
+- Presenter screen: `presentation.html`
+- Audience screen: `join.html`
+- Existing detector: unchanged
+- Visual source: the existing Clarity Labs website
 
-## Findings
+## Presentation checks
 
-No actionable P0, P1, or P2 differences remain.
+- All 10 slides use short, audience-facing copy with no speaker notes.
+- The slides cover the problem, product, technology, live demo, safety, and next steps.
+- At a 1280 × 720 browser viewport, every slide reports `scrollHeight === clientHeight`.
+- The deck retains the existing Fraunces and Inter typography, paper background, accent colors, borders, and rounded-card system.
+- Previous, Next, keyboard navigation, progress, direct slide URLs, and full-screen controls work.
+- The room code, QR code, join URL, and connected-audience count remain visible where needed.
 
-- Fonts and typography: Presentation mode uses the same Fraunces display face and Inter UI face as the source. Optical hierarchy, italic accent treatment, small uppercase labels, and readable body line heights are consistent with the existing visual language.
-- Spacing and layout rhythm: Header height, outer margins, card radii, border weight, and whitespace match the source system. Every slide fits without scrolling at both 1440 × 900 and 1366 × 768.
-- Colors and visual tokens: Paper, card, ink, muted ink, border, orange accent, teal, violet, and gold values reuse the source tokens.
-- Image quality and asset fidelity: The team slide reuses the supplied `team.jpg` asset with a controlled responsive crop. No source imagery was replaced with placeholders.
-- Copy and content: Slide copy is presentation-specific, concise, readable aloud, and consistent with the product’s educational/non-diagnostic positioning.
-- Controls and affordances: Previous, Next, full-screen, exit, progress, direct slide URLs, keyboard navigation, and the live-demo handoff are visible and understandable.
-- Responsive behavior: Opening slide and persistent controls were checked at 390 × 844. Presentation content remains readable and controls remain interactive.
-- Accessibility: Slides expose one active region at a time, inactive slides receive `aria-hidden`, controls are native buttons/links, and reduced-motion preferences are respected.
+## Live interaction checks
 
-## Focused Region Evidence
+Tested locally with separate presenter and audience tabs:
 
-Slide 2 was inspected separately at 1366 × 768 after using the Next control. Card copy, talk-track text, progress, slide count, and navigation remained fully visible. No additional crop was needed because the typography and controls were readable in the full-view capture.
+1. The presenter created room `P6PF7`.
+2. The audience joined with the name `Test Audience`.
+3. The presenter count changed to `1 audience connected`.
+4. Advancing to the first poll made its answers appear on the audience screen.
+5. Selecting `Choosing products` updated the presenter result to `100% (1)`.
+6. The audience submitted `How does the model personalize each result?`.
+7. The question and audience name appeared on the presenter Q&A slide.
 
-## Comparison History
+The same-browser rehearsal path uses `BroadcastChannel`. Different devices use PeerJS signaling and WebRTC data channels. The presentation is intentionally optimized for a small live room of roughly 10 audience devices.
 
-### Pass 1
+## Safety and accessibility
 
-- [P2] Slides 2, 8, and 9 exceeded the available projector-height viewport.
-- [P2] The opening talk track sat against the persistent control bar.
-- Fix: Added height-responsive typography, spacing, card density, safety layout, and team-image cropping for viewports at or below 900 px high.
+- Poll votes are anonymous.
+- Names are optional and are shown only with submitted questions.
+- Audience text is escaped before display and limited to 140 characters.
+- Inactive slides are hidden from assistive technology.
+- Native form controls and buttons are keyboard accessible.
+- Reduced-motion preferences are respected.
+- The product remains described as educational guidance, not a diagnosis.
 
-### Pass 2
+## Operational note
 
-- Post-fix evidence at 1440 × 900: all ten slides reported `scrollHeight === clientHeight`.
-- Post-fix evidence at 1366 × 768: all ten slides reported `scrollHeight === clientHeight`.
-- Slide 2 navigation test updated the count to `2 / 10`, the active title to `The problem`, and the URL to `?slide=2`.
-- The live-demo link was verified as a unique `app.html` link opening in a separate tab.
-- Browser console check returned no warnings or errors.
-
-## Primary Interactions Tested
-
-- Next button advances the active slide.
-- Previous/Next disabled and ending states.
-- Query-string deep linking by slide number.
-- Progress bar and slide count updates.
-- Live-demo link targets the existing detector.
-- Full-screen control is present and backed by the Fullscreen API.
-- Desktop, laptop, and mobile responsive states.
-
-## Follow-up Polish
-
-- P3: Rehearse with the final demo image and adjust talk-track phrasing to match each speaker’s natural delivery.
+Before the event, rehearse the deployed presenter and audience pages with two phones on the venue Wi-Fi. The PeerJS cloud service provides signaling; live answers then travel over direct browser data connections.
 
 final result: passed

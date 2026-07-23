@@ -3,360 +3,427 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clarity Labs — Presentation</title>
-<meta name="description" content="A presentation-ready walkthrough of Clarity Labs and its image-grounded skincare guidance." />
+<title>Clarity Labs — Live Presentation</title>
+<meta name="description" content="A short, interactive presentation of Clarity Labs with live audience polls and questions." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
-    --paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;
-    --line:#DAD3C4;--accent:#E8563A;--accent-2:#2E6E63;--card:#FBF9F4;
-    --violet:#7A5CC2;--gold:#E4903F;--ease:cubic-bezier(.2,.8,.2,1);
+    --paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;--line:#DAD3C4;
+    --accent:#E8563A;--teal:#2E6E63;--violet:#7A5CC2;--gold:#E4903F;--blue:#4A8BB0;--card:#FBF9F4;
+    --ease:cubic-bezier(.2,.8,.2,1);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:"Inter",-apple-system,BlinkMacSystemFont,sans-serif;
     -webkit-font-smoothing:antialiased;overflow:hidden}
-  button,a{font:inherit}
-  a{color:inherit;text-decoration:none}
-  button{color:inherit}
-  .deck{height:100%;display:grid;grid-template-rows:auto 1fr auto}
-
-  .topbar{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
-    padding:0 clamp(20px,4vw,58px);background:rgba(242,238,230,.94);position:relative;z-index:10}
-  .brand{display:flex;align-items:center;gap:11px;font-family:"Fraunces",Georgia,serif;font-size:21px;font-weight:500}
+  button,a{font:inherit;color:inherit}a{text-decoration:none}button{cursor:pointer}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.025em}
+  .deck{height:100%;display:grid;grid-template-rows:68px 1fr 76px}
+  .topbar{border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+    padding:0 clamp(20px,4vw,56px);background:rgba(242,238,230,.96);position:relative;z-index:20}
+  .brand{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;font-weight:500}
   .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden}
   .mark::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
-  .deck-label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
-  .top-actions{display:flex;align-items:center;gap:10px}
-  .quiet-btn{border:1px solid var(--line);background:transparent;border-radius:999px;padding:9px 14px;cursor:pointer;
-    font-size:13px;font-weight:600;transition:.2s}
-  .quiet-btn:hover,.quiet-btn:focus-visible{background:var(--card);border-color:var(--ink);outline:none}
-
-  .slides{min-height:0;position:relative}
-  .slide{position:absolute;inset:0;overflow:auto;padding:clamp(28px,5vh,62px) clamp(24px,7vw,104px);
-    display:grid;align-items:center;opacity:0;visibility:hidden;transform:translateX(28px);
-    transition:opacity .35s var(--ease),transform .35s var(--ease),visibility .35s}
+  .mode{font-size:11px;text-transform:uppercase;letter-spacing:.13em;font-weight:700;color:var(--ink-soft)}
+  .room-status{justify-self:end;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600}
+  .live-dot{width:9px;height:9px;border-radius:50%;background:var(--gold)}
+  .live-dot.ready{background:var(--teal);box-shadow:0 0 0 5px rgba(46,110,99,.12)}
+  .slides{position:relative;min-height:0}
+  .slide{position:absolute;inset:0;overflow:auto;padding:clamp(26px,4.5vh,52px) clamp(28px,7vw,104px);
+    display:grid;align-items:center;opacity:0;visibility:hidden;transform:translateX(24px);
+    transition:opacity .3s var(--ease),transform .3s var(--ease),visibility .3s}
   .slide.active{opacity:1;visibility:visible;transform:none}
-  .slide-inner{width:min(1180px,100%);margin:auto}
-  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:18px}
-  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.025em}
-  h1{font-size:clamp(58px,9vw,126px);line-height:.88;margin:0}
-  h2{font-size:clamp(38px,5.8vw,78px);line-height:.98;margin:0;max-width:990px}
-  h3{font-size:clamp(23px,2.5vw,34px);line-height:1.08;margin:0 0 10px}
+  .inner{width:min(1160px,100%);margin:auto}
+  .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.13em;color:var(--accent);font-weight:700;margin-bottom:14px}
+  h1{font-size:clamp(58px,9vw,122px);line-height:.88;margin:0}
+  h2{font-size:clamp(42px,6vw,78px);line-height:.96;margin:0}
+  h3{font-size:clamp(22px,2.2vw,31px);line-height:1.08;margin:0 0 7px}
   .accent{color:var(--accent);font-style:italic}
-  .lead{font-size:clamp(20px,2.2vw,30px);line-height:1.42;color:var(--ink-soft);max-width:900px;margin:26px 0 0}
-  .talk-track{margin-top:clamp(26px,5vh,50px);max-width:1000px;border-left:4px solid var(--accent);
-    background:var(--card);border-radius:0 16px 16px 0;padding:18px 24px}
-  .talk-track .label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--accent);margin-bottom:7px}
-  .talk-track p{font-family:"Fraunces",Georgia,serif;font-size:clamp(20px,2vw,28px);line-height:1.35;margin:0}
+  .lead{font-size:clamp(19px,2vw,27px);line-height:1.4;color:var(--ink-soft);max-width:900px;margin:20px 0 0}
+  .short{max-width:760px}
+  .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:30px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:24px}
+  .card .tag{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--accent);margin-bottom:17px}
+  .card p{font-size:15px;line-height:1.5;color:var(--ink-soft);margin:0}
 
-  .cover{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.72fr);gap:clamp(34px,7vw,100px);align-items:center}
-  .cover-card{border:1px solid var(--line);background:var(--card);border-radius:28px;padding:clamp(26px,4vw,48px)}
-  .cover-card .big{font-family:"Fraunces";font-size:clamp(48px,7vw,92px);color:var(--accent);line-height:1}
-  .cover-card p{font-size:18px;line-height:1.55;color:var(--ink-soft);margin:16px 0 0}
+  .cover{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.55fr);gap:clamp(36px,7vw,92px);align-items:center}
+  .cover-side{border:1px solid var(--line);background:var(--card);border-radius:26px;padding:34px}
+  .cover-side b{display:block;font-family:"Fraunces";font-size:64px;color:var(--accent);font-weight:400;line-height:1}
+  .cover-side span{display:block;font-size:18px;line-height:1.45;color:var(--ink-soft);margin-top:15px}
 
-  .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:38px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,2.5vw,30px)}
-  .card .num{font-family:"Fraunces";font-size:18px;color:var(--accent);margin-bottom:26px}
-  .card p{font-size:16px;line-height:1.55;color:var(--ink-soft);margin:0}
-  .card strong{color:var(--ink)}
-  .card.teal{border-top:4px solid var(--accent-2)}
-  .card.orange{border-top:4px solid var(--accent)}
-  .card.violet{border-top:4px solid var(--violet)}
+  .join-grid{display:grid;grid-template-columns:1fr 310px;gap:clamp(34px,7vw,90px);align-items:center}
+  .join-url{font-family:"Fraunces";font-size:clamp(28px,3.3vw,46px);margin:24px 0 8px}
+  .room-code{display:inline-flex;align-items:center;letter-spacing:.16em;background:var(--ink);color:var(--paper);
+    font-family:"Inter";font-size:clamp(38px,5vw,66px);font-weight:700;padding:15px 24px;border-radius:18px;margin-top:14px}
+  .connected-line{font-size:16px;color:var(--teal);font-weight:700;margin-top:18px}
+  .qr{width:270px;height:270px;border:1px solid var(--line);background:#fff;border-radius:24px;padding:24px;display:grid;place-items:center}
+  .qr img,.qr canvas{max-width:100%;height:auto}
 
-  .pipeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:38px}
-  .pipe{padding:26px;border:1px solid var(--line);border-radius:20px;background:var(--card);position:relative}
-  .pipe .step{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:20px}
-  .pipe p{font-size:15px;line-height:1.5;color:var(--ink-soft);margin:0}
-  .pipe:not(:last-child)::after{content:"NEXT";position:absolute;right:-31px;top:50%;transform:translateY(-50%);
-    font-size:9px;letter-spacing:.1em;font-weight:700;color:var(--ink-soft);z-index:2;background:var(--paper);padding:4px}
+  .poll-layout{display:grid;grid-template-columns:minmax(300px,.8fr) 1.2fr;gap:clamp(30px,5vw,72px);align-items:center}
+  .poll-question{font-size:clamp(40px,5.2vw,70px)}
+  .poll-meta{display:flex;gap:16px;align-items:center;margin-top:22px;font-size:14px;color:var(--ink-soft)}
+  .poll-meta b{font-size:22px;color:var(--ink)}
+  .bars{display:grid;gap:14px}
+  .bar-row{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 18px}
+  .bar-top{display:flex;justify-content:space-between;gap:18px;align-items:baseline;margin-bottom:9px}
+  .bar-label{font-weight:650;font-size:16px}.bar-value{font-family:"Fraunces";font-size:22px}
+  .bar-track{height:11px;background:var(--paper-2);border-radius:99px;overflow:hidden}
+  .bar-fill{height:100%;width:0;background:var(--c);border-radius:99px;transition:width .55s var(--ease)}
+  .poll-actions{display:flex;justify-content:flex-end;margin-top:12px}
+  .reset-poll{border:0;background:transparent;color:var(--ink-soft);font-size:12px;text-decoration:underline}
 
-  .demo-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.65fr);gap:32px;align-items:center}
-  .demo-steps{display:grid;gap:12px}
-  .demo-step{display:flex;align-items:flex-start;gap:16px;padding:18px 20px;background:var(--card);border:1px solid var(--line);border-radius:16px}
-  .demo-step b{font-family:"Fraunces";font-size:24px;color:var(--accent)}
-  .demo-step span{font-size:16px;line-height:1.45}
-  .launch{display:inline-flex;justify-content:center;background:var(--ink);color:var(--paper);padding:16px 24px;border-radius:999px;
-    font-weight:700;margin-top:20px;transition:.2s}
+  .flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:30px}
+  .flow-step{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:25px;position:relative}
+  .flow-step .n{font-family:"Fraunces";font-size:42px;color:var(--accent);margin-bottom:16px}
+  .flow-step p{font-size:14px;line-height:1.5;color:var(--ink-soft);margin:0}
+  .tech-note{margin-top:20px;font-size:15px;color:var(--ink-soft)}
+
+  .demo{display:grid;grid-template-columns:1fr minmax(280px,.6fr);gap:40px;align-items:center}
+  .demo-list{display:grid;gap:11px}
+  .demo-step{display:flex;gap:15px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px 18px}
+  .demo-step b{font-family:"Fraunces";font-size:25px;color:var(--accent)}
+  .launch{display:inline-flex;background:var(--ink);color:var(--paper);border-radius:999px;padding:15px 24px;font-weight:700;margin-top:22px;transition:.2s}
   .launch:hover,.launch:focus-visible{background:var(--accent);transform:translateY(-2px);outline:none}
 
-  .classes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:34px}
-  .class-pill{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 20px}
-  .class-pill i{width:12px;height:12px;border-radius:4px;background:var(--c);flex:none}
-  .class-pill span{font-family:"Fraunces";font-size:24px;text-transform:capitalize}
+  .safety{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+  .safety-card{border-radius:20px;padding:25px;background:var(--card);border:1px solid var(--line)}
+  .safety-card b{font-family:"Fraunces";font-size:26px;font-weight:400;display:block;margin-bottom:9px}
+  .safety-card p{font-size:14px;line-height:1.55;color:var(--ink-soft);margin:0}
 
-  .safety{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:stretch;margin-top:36px}
-  .safety-main{background:var(--ink);color:var(--paper);border-radius:24px;padding:clamp(28px,4vw,48px)}
-  .safety-main p{font-family:"Fraunces";font-size:clamp(25px,3vw,40px);line-height:1.25;margin:0}
-  .safety-list{display:grid;gap:12px}
-  .safety-item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
-  .safety-item b{display:block;margin-bottom:5px}
-  .safety-item span{font-size:14px;line-height:1.5;color:var(--ink-soft)}
+  .questions{display:grid;grid-template-columns:.7fr 1.3fr;gap:36px;align-items:center}
+  .question-feed{display:grid;gap:12px;max-height:470px;overflow:auto}
+  .question{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 16px 16px 0;padding:16px 18px}
+  .question p{font-family:"Fraunces";font-size:22px;line-height:1.3;margin:0}
+  .question span{display:block;font-size:11px;color:var(--ink-soft);margin-top:7px}
+  .empty-question{font-size:18px;color:var(--ink-soft);padding:26px;border:1px dashed var(--line);border-radius:16px;text-align:center}
 
-  .team-layout{display:grid;grid-template-columns:minmax(300px,.9fr) 1fr;gap:clamp(32px,6vw,80px);align-items:center}
-  .team-photo{border-radius:24px;overflow:hidden;border:1px solid var(--line);box-shadow:0 36px 70px -38px rgba(70,40,20,.5)}
-  .team-photo img{width:100%;display:block}
-  .names{font-size:clamp(17px,2vw,23px);line-height:1.8;margin-top:24px;color:var(--ink-soft)}
-
-  .closing{text-align:center}
-  .closing h2{margin:0 auto}
-  .closing .lead{margin:24px auto 0}
-  .closing .talk-track{margin-left:auto;margin-right:auto;text-align:left}
-
-  .controls{min-height:78px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
-    gap:18px;padding:13px clamp(20px,4vw,58px);background:rgba(242,238,230,.96);position:relative;z-index:10}
-  .progress-wrap{display:flex;align-items:center;gap:12px}
-  .count{font-size:12px;color:var(--ink-soft);font-weight:600;min-width:48px}
-  .progress{height:4px;background:var(--line);border-radius:999px;overflow:hidden;width:min(240px,24vw)}
-  .progress span{display:block;height:100%;background:var(--accent);width:10%;transition:width .35s var(--ease)}
-  .key-hint{font-size:12px;color:var(--ink-soft);text-align:center}
-  .nav-buttons{display:flex;gap:10px;justify-self:end}
-  .nav-btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer;transition:.2s}
+  .team-line{font-size:17px;color:var(--ink-soft);margin-top:25px;line-height:1.7}
+  .controls{border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+    padding:12px clamp(20px,4vw,56px);background:rgba(242,238,230,.97);position:relative;z-index:20}
+  .progress-wrap{display:flex;align-items:center;gap:12px}.count{font-size:12px;color:var(--ink-soft);min-width:48px;font-weight:600}
+  .progress{width:min(230px,23vw);height:4px;background:var(--line);border-radius:99px;overflow:hidden}
+  .progress span{display:block;height:100%;background:var(--accent);transition:width .3s var(--ease)}
+  .hint{font-size:12px;color:var(--ink-soft)}.navs{display:flex;gap:9px;justify-self:end}
+  .nav-btn,.full-btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:10px 17px;font-weight:700}
   .nav-btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-  .nav-btn:hover:not(:disabled),.nav-btn:focus-visible:not(:disabled){border-color:var(--accent);background:var(--accent);color:#fff;outline:none}
-  .nav-btn:disabled{opacity:.35;cursor:not-allowed}
+  .nav-btn:hover:not(:disabled),.nav-btn:focus-visible:not(:disabled),.full-btn:hover,.full-btn:focus-visible{background:var(--accent);border-color:var(--accent);color:#fff;outline:none}
+  .nav-btn:disabled{opacity:.35;cursor:not-allowed}.full-btn{position:fixed;right:24px;top:14px;z-index:30;font-size:12px}
 
   @media(max-width:850px){
-    .cover,.demo-grid,.safety,.team-layout{grid-template-columns:1fr}
-    .cover-card{display:none}
-    .cards,.pipeline{grid-template-columns:1fr}
-    .pipe:not(:last-child)::after{display:none}
-    .classes{grid-template-columns:repeat(2,1fr)}
-    .slide{align-items:start}
-    .key-hint{display:none}
-    .controls{grid-template-columns:1fr auto}
+    .topbar{grid-template-columns:1fr auto}.mode{display:none}.cover,.join-grid,.poll-layout,.demo,.questions{grid-template-columns:1fr}
+    .cover-side,.qr{display:none}.cards,.flow,.safety{grid-template-columns:1fr}.slide{align-items:start}
+    .hint,.full-btn{display:none}.controls{grid-template-columns:1fr auto}.question-feed{max-height:none}
   }
   @media(max-width:560px){
-    .topbar{height:62px}.deck-label,.top-actions .home-link{display:none}
-    .slide{padding:28px 20px}
-    .classes{grid-template-columns:1fr}
-    .talk-track p{font-size:19px}
-    .progress{width:100px}
-    .nav-btn{padding:10px 13px}
+    .deck{grid-template-rows:60px 1fr 72px}.slide{padding:25px 20px}.room-status{font-size:11px}.full-btn{display:none}
+    .cards{margin-top:20px}.room-code{font-size:38px}.poll-question{font-size:40px}
+    .progress{width:90px}.nav-btn{padding:9px 12px}
   }
   @media(max-height:900px) and (min-width:851px){
-    .slide{padding-top:24px;padding-bottom:24px}
-    h1{font-size:clamp(54px,7.5vw,102px)}
-    h2{font-size:clamp(36px,4.8vw,64px)}
-    h3{font-size:clamp(21px,2vw,28px);margin-bottom:7px}
-    .lead{font-size:clamp(18px,1.75vw,24px);margin-top:17px}
-    .talk-track{margin-top:22px;padding:13px 20px}
-    .talk-track p{font-size:clamp(18px,1.6vw,23px)}
-    .cards,.pipeline,.classes,.safety{margin-top:24px}
-    .card{padding:20px}.card .num{margin-bottom:14px}.card p{font-size:14px}
-    .pipe{padding:20px}.pipe .step{margin-bottom:12px}
-    .class-pill{padding:13px 17px}.class-pill span{font-size:21px}
-    .safety-main{padding:28px}.safety-main p{font-size:clamp(23px,2.3vw,32px)}
-    .safety-list{gap:9px}.safety-item{padding:12px 16px}.safety-item span{font-size:13px}
-    .team-photo img{height:min(48vh,390px);object-fit:cover;object-position:center}
-    .names{font-size:18px;line-height:1.45;margin-top:14px}
-    .cover-card{padding:32px}.cover-card .big{font-size:70px}
+    .slide{padding-top:22px;padding-bottom:22px}h1{font-size:clamp(54px,7.5vw,100px)}h2{font-size:clamp(38px,5vw,64px)}
+    .lead{font-size:clamp(18px,1.7vw,23px);margin-top:15px}.cards,.flow,.safety{margin-top:22px}.card,.flow-step,.safety-card{padding:19px}
+    .card .tag{margin-bottom:11px}.cover-side{padding:28px}.qr{width:230px;height:230px;padding:18px}
+    .room-code{font-size:48px}.poll-question{font-size:clamp(38px,4.4vw,58px)}.bar-row{padding:11px 15px}.bars{gap:10px}
+    .question-feed{max-height:390px}.question{padding:13px 16px}.question p{font-size:19px}
+    .flow-step .n{font-size:30px;margin-bottom:8px}.flow-step p{font-size:13px}.tech-note{margin-top:10px;font-size:13px}
   }
-  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
-  @media print{
-    body{overflow:visible;background:#fff}.deck{display:block}.topbar,.controls{display:none}
-    .slides{position:static}.slide{position:relative;opacity:1;visibility:visible;transform:none;display:grid;
-      min-height:100vh;page-break-after:always;overflow:hidden;padding:48px}
-  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media print{.topbar,.controls,.full-btn{display:none}.deck{display:block}.slides{position:static}.slide{position:relative;opacity:1;visibility:visible;transform:none;min-height:100vh;page-break-after:always}}
 </style>
 </head>
 <body>
 <main class="deck">
   <header class="topbar">
-    <a class="brand" href="index.html" aria-label="Back to Clarity Labs home"><span class="mark" aria-hidden="true"></span>Clarity Labs</a>
-    <div class="deck-label">Presentation mode</div>
-    <div class="top-actions">
-      <a class="quiet-btn home-link" href="index.html">Exit presentation</a>
-      <button class="quiet-btn" id="fullscreen" type="button">Full screen</button>
-    </div>
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>Clarity Labs</a>
+    <span class="mode">Live presentation</span>
+    <div class="room-status"><span class="live-dot" id="liveDot"></span><span id="connectionText">Starting room…</span></div>
   </header>
+  <button class="full-btn" id="fullscreen" type="button">Full screen</button>
 
-  <div class="slides" id="slides">
+  <div class="slides">
     <section class="slide active" data-title="Opening">
-      <div class="slide-inner cover">
+      <div class="inner cover">
         <div>
           <div class="eyebrow">AI Launchpad · Babson</div>
-          <h1>Meet<br><span class="accent">Clarity</span> Labs.</h1>
-          <p class="lead">A clearer first look at visible skin concerns—powered by computer vision and personalized AI guidance.</p>
-          <div class="talk-track">
-            <div class="label">Talk track</div>
-            <p>“Clarity Labs helps people move from uncertainty to an informed next step using one photo and two complementary AI models.”</p>
-          </div>
+          <h1>Clarity<br><span class="accent">Labs.</span></h1>
+          <p class="lead short">One photo becomes a visual map and a personalized skincare starting point.</p>
         </div>
-        <aside class="cover-card">
-          <div class="big">01</div>
-          <p>One photo becomes a visual map, an activity summary, and a personalized routine.</p>
-        </aside>
+        <div class="cover-side"><b>01</b><span>See what is visible.<br>Know the next step.</span></div>
       </div>
     </section>
 
-    <section class="slide" data-title="The problem">
-      <div class="slide-inner">
-        <div class="eyebrow">The problem</div>
-        <h2>Skin concerns create a lot of <span class="accent">guesswork.</span></h2>
-        <p class="lead">People can see that something changed, but they may not know what type of blemish they are looking at—or which products actually match it.</p>
+    <section class="slide" data-title="Join live">
+      <div class="inner join-grid">
+        <div>
+          <div class="eyebrow">Join the presentation</div>
+          <h2>Your answers go <span class="accent">live.</span></h2>
+          <div class="join-url">anche-gamma.vercel.app/join.html</div>
+          <div>Enter room code:</div>
+          <div class="room-code" id="roomCode">—</div>
+          <div class="connected-line" id="joinCount">Waiting for the first person…</div>
+        </div>
+        <div class="qr" id="qr" aria-label="QR code for audience join page"></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Audience poll" data-poll="challenge">
+      <div class="inner poll-layout">
+        <div>
+          <div class="eyebrow">Live poll</div>
+          <h2 class="poll-question">What makes skincare advice hardest?</h2>
+          <div class="poll-meta"><span><b data-poll-total="challenge">0</b> answers</span><span>Updates live</span></div>
+        </div>
+        <div>
+          <div class="bars" data-poll-bars="challenge"></div>
+          <div class="poll-actions"><button class="reset-poll" type="button" data-reset-poll="challenge">Reset answers</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="What it is">
+      <div class="inner">
+        <div class="eyebrow">What it is</div>
+        <h2>AI that turns a photo into <span class="accent">three clear outputs.</span></h2>
         <div class="cards">
-          <article class="card orange"><div class="num">01</div><h3>Hard to identify</h3><p>Different visible findings can look similar without a trained model.</p></article>
-          <article class="card teal"><div class="num">02</div><h3>Advice feels generic</h3><p>Most routines are disconnected from what is visible in the person’s photo.</p></article>
-          <article class="card violet"><div class="num">03</div><h3>Too many choices</h3><p>Product aisles and online recommendations can leave users with no clear next step.</p></article>
+          <article class="card"><div class="tag">Map</div><h3>Visible findings</h3><p>Boxes show what the detector found and where.</p></article>
+          <article class="card"><div class="tag">Summarize</div><h3>Activity overview</h3><p>Counts create a neutral, non-diagnostic summary.</p></article>
+          <article class="card"><div class="tag">Guide</div><h3>Personalized plan</h3><p>The photo and user context shape practical guidance.</p></article>
         </div>
-        <div class="talk-track"><div class="label">Talk track</div><p>“The issue is not a lack of information. It is turning a visible concern into guidance that feels relevant, understandable, and safe.”</p></div>
       </div>
     </section>
 
-    <section class="slide" data-title="The solution">
-      <div class="slide-inner">
-        <div class="eyebrow">Our solution</div>
-        <h2>One scan. <span class="accent">Three useful layers.</span></h2>
-        <div class="cards">
-          <article class="card orange"><div class="num">01 · MAP</div><h3>Visible detections</h3><p>Bounding boxes show where the model found each supported blemish class.</p></article>
-          <article class="card teal"><div class="num">02 · SUMMARIZE</div><h3>Activity overview</h3><p>Counts and weighted findings create a neutral, non-diagnostic visual summary.</p></article>
-          <article class="card violet"><div class="num">03 · GUIDE</div><h3>Personalized plan</h3><p>The image, detections, and user profile shape a routine and product options by budget.</p></article>
+    <section class="slide" data-title="Technology">
+      <div class="inner">
+        <div class="eyebrow">Technology</div>
+        <h2>Two models. <span class="accent">Two different jobs.</span></h2>
+        <div class="flow">
+          <article class="flow-step"><div class="n">1</div><h3>Browser</h3><p>Resizes the image so both models analyze the same pixels.</p></article>
+          <article class="flow-step"><div class="n">2</div><h3>Roboflow YOLO</h3><p>Detects six classes and returns boxes, counts, and confidence.</p></article>
+          <article class="flow-step"><div class="n">3</div><h3>Groq Vision</h3><p>Combines the image, detections, and profile into readable guidance.</p></article>
         </div>
-        <div class="talk-track"><div class="label">Talk track</div><p>“We are not replacing a dermatologist. We are making the first step clearer by showing what the model sees and connecting it to practical education.”</p></div>
-      </div>
-    </section>
-
-    <section class="slide" data-title="How it works">
-      <div class="slide-inner">
-        <div class="eyebrow">How it works</div>
-        <h2>Two models do <span class="accent">different jobs.</span></h2>
-        <div class="pipeline">
-          <article class="pipe"><div class="step">Input</div><h3>A clear photo</h3><p>The browser resizes the image so both models analyze the same pixels efficiently.</p></article>
-          <article class="pipe"><div class="step">Roboflow</div><h3>Detect and count</h3><p>A YOLO object-detection model returns classes, locations, and confidence values.</p></article>
-          <article class="pipe"><div class="step">Groq Vision</div><h3>Explain and tailor</h3><p>The vision model combines the photo, detections, and user preferences into readable guidance.</p></article>
-        </div>
-        <div class="talk-track"><div class="label">Talk track</div><p>“Roboflow gives us structure and precision. Groq adds visual context and communicates the result in language personalized to the user.”</p></div>
+        <div class="tech-note">API keys stay server-side. Clarity Labs does not save the uploaded image.</div>
       </div>
     </section>
 
     <section class="slide" data-title="Live demo">
-      <div class="slide-inner demo-grid">
+      <div class="inner demo">
         <div>
           <div class="eyebrow">Live demo</div>
-          <h2>Let’s scan a <span class="accent">photo.</span></h2>
-          <p class="lead">Use a clear, well-lit image with the skin area close to the camera.</p>
-          <a class="launch" href="app.html" target="_blank" rel="noopener">Open the live tool</a>
+          <h2>One photo.<br><span class="accent">One personalized result.</span></h2>
+          <a class="launch" href="app.html" target="_blank" rel="noopener">Open the live scan</a>
         </div>
-        <div class="demo-steps">
-          <div class="demo-step"><b>1</b><span>Upload the prepared demo photo.</span></div>
-          <div class="demo-step"><b>2</b><span>Select <strong>Analyze photo</strong> and point out the boxes and class counts.</span></div>
-          <div class="demo-step"><b>3</b><span>Generate the plan and connect its recommendations back to the photo.</span></div>
-          <div class="talk-track"><div class="label">While it runs</div><p>“The image is sent securely for analysis and is not saved by Clarity Labs.”</p></div>
+        <div class="demo-list">
+          <div class="demo-step"><b>1</b><span>Upload a clear photo</span></div>
+          <div class="demo-step"><b>2</b><span>Review detections</span></div>
+          <div class="demo-step"><b>3</b><span>Generate the plan</span></div>
         </div>
       </div>
     </section>
 
-    <section class="slide" data-title="Detection classes">
-      <div class="slide-inner">
-        <div class="eyebrow">Model output</div>
-        <h2>Six visible finding classes.</h2>
-        <p class="lead">The model distinguishes categories instead of placing every visible spot into one generic bucket.</p>
-        <div class="classes">
-          <div class="class-pill" style="--c:#2E6E63"><i></i><span>blackheads</span></div>
-          <div class="class-pill" style="--c:#7A5CC2"><i></i><span>dark spots</span></div>
-          <div class="class-pill" style="--c:#C24E6B"><i></i><span>nodules</span></div>
-          <div class="class-pill" style="--c:#E4903F"><i></i><span>papules</span></div>
-          <div class="class-pill" style="--c:#E8563A"><i></i><span>pustules</span></div>
-          <div class="class-pill" style="--c:#4A8BB0"><i></i><span>whiteheads</span></div>
+    <section class="slide" data-title="Audience poll" data-poll="value">
+      <div class="inner poll-layout">
+        <div>
+          <div class="eyebrow">Live poll</div>
+          <h2 class="poll-question">Which feature creates the most value?</h2>
+          <div class="poll-meta"><span><b data-poll-total="value">0</b> answers</span><span>Updates live</span></div>
         </div>
-        <div class="talk-track"><div class="label">Talk track</div><p>“Different visible findings may call for different educational guidance, so distinguishing the class is more useful than simply counting spots.”</p></div>
-      </div>
-    </section>
-
-    <section class="slide" data-title="Personalization">
-      <div class="slide-inner">
-        <div class="eyebrow">Personalization</div>
-        <h2>Guidance grounded in the <span class="accent">actual photo.</span></h2>
-        <div class="cards">
-          <article class="card orange"><div class="num">VISIBLE</div><h3>Photo patterns</h3><p>Groq considers where supported findings appear and whether the image quality limits certainty.</p></article>
-          <article class="card teal"><div class="num">STRUCTURED</div><h3>Detection results</h3><p>Class counts and boxes keep the response tied to the object detector’s output.</p></article>
-          <article class="card violet"><div class="num">PERSONAL</div><h3>User context</h3><p>Age range, experience, main concern, and budget tiers make the guidance more relevant.</p></article>
+        <div>
+          <div class="bars" data-poll-bars="value"></div>
+          <div class="poll-actions"><button class="reset-poll" type="button" data-reset-poll="value">Reset answers</button></div>
         </div>
-        <div class="talk-track"><div class="label">Talk track</div><p>“The plan is not a canned answer. It is generated from this image, these detections, and the preferences this user shared.”</p></div>
       </div>
     </section>
 
     <section class="slide" data-title="Safety">
-      <div class="slide-inner">
+      <div class="inner">
         <div class="eyebrow">Safety and scope</div>
-        <h2>Helpful by design. <span class="accent">Not a diagnosis.</span></h2>
+        <h2>Useful—not <span class="accent">overconfident.</span></h2>
         <div class="safety">
-          <div class="safety-main"><p>Clarity Labs is an educational first-look tool. It does not diagnose conditions, prescribe medication, or replace licensed care.</p></div>
-          <div class="safety-list">
-            <div class="safety-item"><b>Neutral language</b><span>Results describe visible activity instead of assigning a medical severity rating.</span></div>
-            <div class="safety-item"><b>Clear limits</b><span>The plan acknowledges lighting, framing, and uncertainty when they affect the scan.</span></div>
-            <div class="safety-item"><b>Escalation guidance</b><span>Persistent, painful, or worsening concerns should be discussed with a licensed dermatologist.</span></div>
-          </div>
+          <article class="safety-card"><b>Not a diagnosis</b><p>Clarity Labs is educational and does not replace licensed care.</p></article>
+          <article class="safety-card"><b>Visible limits</b><p>Lighting, framing, and uncertainty are acknowledged in the result.</p></article>
+          <article class="safety-card"><b>Clear next step</b><p>Persistent, painful, or worsening concerns should go to a dermatologist.</p></article>
         </div>
-        <div class="talk-track"><div class="label">Talk track</div><p>“Our goal is confidence without overconfidence: show what the model found, explain its limits, and point toward professional help when appropriate.”</p></div>
       </div>
     </section>
 
-    <section class="slide" data-title="The team">
-      <div class="slide-inner team-layout">
-        <div class="team-photo"><img src="team.jpg" alt="The Clarity Labs team"></div>
+    <section class="slide" data-title="Audience questions">
+      <div class="inner questions">
         <div>
-          <div class="eyebrow">The team</div>
-          <h2>Built at <span class="accent">Babson.</span></h2>
-          <p class="lead">A student team combining computer vision, product design, and practical AI deployment.</p>
-          <p class="names">Teddy Aaron<br>June Meyer<br>Rikki Chatterjee<br>Kai Izzi</p>
-          <div class="talk-track"><div class="label">Talk track</div><p>“We built Clarity Labs for AI Launchpad to put a real computer-vision workflow in front of real users.”</p></div>
+          <div class="eyebrow">Live Q&amp;A</div>
+          <h2>What do you <span class="accent">want to know?</span></h2>
+          <p class="lead">Submit from the same audience page.</p>
+        </div>
+        <div class="question-feed" id="questionFeed">
+          <div class="empty-question">Audience questions will appear here in real time.</div>
         </div>
       </div>
     </section>
 
     <section class="slide" data-title="Closing">
-      <div class="slide-inner closing">
+      <div class="inner">
         <div class="eyebrow">Clarity Labs</div>
-        <h2>See what’s visible.<br><span class="accent">Know the next step.</span></h2>
-        <p class="lead">Thank you. We’re ready for questions.</p>
-        <div class="talk-track"><div class="label">Closing line</div><p>“Clarity Labs turns one photo into a clearer, safer, and more personal starting point for skincare decisions.”</p></div>
+        <h2>See what is visible.<br><span class="accent">Know the next step.</span></h2>
+        <p class="lead">Computer vision made understandable, personal, and safe.</p>
+        <p class="team-line">Teddy Aaron · June Meyer · Rikki Chatterjee · Kai Izzi<br>Babson AI Launchpad</p>
       </div>
     </section>
   </div>
 
   <footer class="controls">
-    <div class="progress-wrap">
-      <span class="count" id="count">1 / 10</span>
-      <div class="progress" aria-hidden="true"><span id="progress"></span></div>
-    </div>
-    <div class="key-hint">Use arrow keys or spacebar to advance</div>
-    <div class="nav-buttons">
-      <button class="nav-btn" id="prev" type="button">Previous</button>
-      <button class="nav-btn primary" id="next" type="button">Next</button>
-    </div>
+    <div class="progress-wrap"><span class="count" id="count">1 / 10</span><div class="progress"><span id="progress"></span></div></div>
+    <div class="hint">Arrow keys or spacebar to advance</div>
+    <div class="navs"><button class="nav-btn" id="prev" type="button">Previous</button><button class="nav-btn primary" id="next" type="button">Next</button></div>
   </footer>
 </main>
 
 <script>
+  const POLLS={
+    challenge:{id:"challenge",question:"What makes skincare advice hardest?",options:[
+      {id:"identify",label:"Knowing what I’m seeing",color:"#E8563A"},
+      {id:"products",label:"Choosing products",color:"#2E6E63"},
+      {id:"trust",label:"Trusting online advice",color:"#7A5CC2"},
+      {id:"routine",label:"Staying consistent",color:"#E4903F"}
+    ]},
+    value:{id:"value",question:"Which feature creates the most value?",options:[
+      {id:"map",label:"Visual detection map",color:"#E8563A"},
+      {id:"plan",label:"Personalized routine",color:"#2E6E63"},
+      {id:"budget",label:"Budget product picks",color:"#7A5CC2"},
+      {id:"safety",label:"Safety and limits",color:"#4A8BB0"}
+    ]}
+  };
+  const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const makeCode=()=>Array.from({length:5},()=>alphabet[Math.floor(Math.random()*alphabet.length)]).join("");
+  const roomCode=sessionStorage.getItem("clarity_live_room")||makeCode();
+  sessionStorage.setItem("clarity_live_room",roomCode);
+  const hostId=`claritylabs-${roomCode.toLowerCase()}`;
+  const joinUrl=`${location.origin}/join.html?room=${roomCode}`;
   const slides=[...document.querySelectorAll(".slide")];
-  const prev=document.getElementById("prev"),next=document.getElementById("next");
-  const count=document.getElementById("count"),progress=document.getElementById("progress");
-  const fullscreen=document.getElementById("fullscreen");
-  const initial=Math.max(0,Math.min(slides.length-1,(Number(new URLSearchParams(location.search).get("slide"))||1)-1));
-  let current=initial;
+  const connections=new Map(),votes=new Map(),questions=new Map();
+  const localChannel="BroadcastChannel" in window?new BroadcastChannel(`claritylabs-${roomCode}`):null;
+  let current=Math.max(0,Math.min(slides.length-1,(Number(new URLSearchParams(location.search).get("slide"))||1)-1));
+  let peer=null,roomReady=false;
 
+  document.getElementById("roomCode").textContent=roomCode;
+  try{new QRCode(document.getElementById("qr"),{text:joinUrl,width:220,height:220,colorDark:"#17140F",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M})}catch{}
+
+  function safeText(value,max=140){return String(value||"").replace(/[<>]/g,"").trim().slice(0,max)}
+  function currentPoll(){
+    const id=slides[current].dataset.poll;
+    return id?POLLS[id]:null;
+  }
+  function pollVotes(id){
+    if(!votes.has(id))votes.set(id,new Map());
+    return votes.get(id);
+  }
+  function broadcast(payload){for(const conn of connections.values())if(conn.open)try{conn.send(payload)}catch{}}
+  function sendState(conn){
+    const poll=currentPoll();
+    conn.send({type:"state",room:roomCode,audience:connections.size,poll});
+  }
+  function broadcastState(){for(const conn of connections.values())if(conn.open)sendState(conn)}
+  function renderConnection(){
+    const n=connections.size;
+    document.getElementById("liveDot").classList.toggle("ready",roomReady);
+    document.getElementById("connectionText").textContent=roomReady?`${n} audience connected`:"Connecting live room…";
+    document.getElementById("joinCount").textContent=n?`${n} ${n===1?"person":"people"} connected and ready`:"Waiting for the first person…";
+  }
+  function renderPoll(id){
+    const poll=POLLS[id],map=pollVotes(id),total=map.size;
+    const counts=Object.fromEntries(poll.options.map(o=>[o.id,0]));
+    for(const answer of map.values())if(answer in counts)counts[answer]++;
+    const root=document.querySelector(`[data-poll-bars="${id}"]`);
+    root.innerHTML=poll.options.map(option=>{
+      const n=counts[option.id],pct=total?Math.round(n/total*100):0;
+      return `<div class="bar-row"><div class="bar-top"><span class="bar-label">${option.label}</span><span class="bar-value">${pct}% <small>(${n})</small></span></div><div class="bar-track"><div class="bar-fill" style="--c:${option.color};width:${pct}%"></div></div></div>`;
+    }).join("");
+    document.querySelector(`[data-poll-total="${id}"]`).textContent=total;
+  }
+  function renderQuestions(){
+    const feed=document.getElementById("questionFeed");
+    const items=[...questions.values()].sort((a,b)=>b.time-a.time).slice(0,8);
+    feed.innerHTML=items.length?items.map(q=>`<article class="question"><p>${q.text}</p><span>${q.name||"Anonymous"}</span></article>`).join("")
+      :'<div class="empty-question">Audience questions will appear here in real time.</div>';
+  }
+  function handleMessage(conn,data){
+    if(!data||typeof data!=="object")return;
+    const clientKey=safeText(data.clientId,80)||conn.peer;
+    if(data.type==="vote"){
+      const poll=POLLS[data.pollId];
+      if(!poll||!poll.options.some(o=>o.id===data.option))return;
+      pollVotes(poll.id).set(clientKey,data.option);
+      renderPoll(poll.id);
+      conn.send({type:"vote-ack",pollId:poll.id,option:data.option});
+    }
+    if(data.type==="question"){
+      const text=safeText(data.text),name=safeText(data.name,30);
+      if(!text)return;
+      const questionId=safeText(data.questionId,80)||String(Date.now());
+      questions.set(`${clientKey}-${questionId}`,{text,name,time:Date.now()});
+      renderQuestions();
+      conn.send({type:"question-ack"});
+    }
+  }
+  function acceptConnection(conn){
+    conn.on("open",()=>{
+      const key=safeText(conn.metadata?.clientId,80)||conn.peer;
+      connections.set(key,conn);renderConnection();sendState(conn);broadcastState();
+      conn.on("data",data=>handleMessage(conn,data));
+    });
+    conn.on("close",()=>{
+      const key=safeText(conn.metadata?.clientId,80)||conn.peer;
+      if(connections.get(key)===conn)connections.delete(key);
+      renderConnection();broadcastState();
+    });
+    conn.on("error",()=>{renderConnection()});
+  }
+  function acceptLocal(clientId,name){
+    if(!localChannel||connections.has(clientId))return connections.get(clientId);
+    const conn={
+      peer:clientId,open:true,metadata:{clientId,name},
+      send:payload=>localChannel.postMessage({source:"host",target:clientId,payload})
+    };
+    connections.set(clientId,conn);renderConnection();sendState(conn);broadcastState();
+    return conn;
+  }
+  if(localChannel)localChannel.onmessage=event=>{
+    const message=event.data;
+    if(!message||message.source!=="audience")return;
+    const clientId=safeText(message.clientId,80);
+    if(!clientId)return;
+    if(message.payload?.type==="leave"){connections.delete(clientId);renderConnection();broadcastState();return}
+    const conn=acceptLocal(clientId,safeText(message.payload?.name,30));
+    if(message.payload?.type!=="join")handleMessage(conn,message.payload);
+  };
+  function startRoom(){
+    if(typeof Peer!=="function"){document.getElementById("connectionText").textContent="Live service unavailable";return}
+    peer=new Peer(hostId,{host:"0.peerjs.com",port:443,path:"/",secure:true,debug:1});
+    peer.on("open",()=>{roomReady=true;renderConnection()});
+    peer.on("connection",acceptConnection);
+    peer.on("disconnected",()=>{roomReady=false;renderConnection();setTimeout(()=>{try{peer.reconnect()}catch{}},1200)});
+    peer.on("error",error=>{
+      roomReady=false;
+      renderConnection();
+      document.getElementById("connectionText").textContent=error.type==="unavailable-id"?"Room already open in another tab":"Live room connection issue";
+    });
+  }
   function show(index){
     current=Math.max(0,Math.min(slides.length-1,index));
-    slides.forEach((slide,i)=>{
-      const active=i===current;
-      slide.classList.toggle("active",active);
-      slide.setAttribute("aria-hidden",String(!active));
-    });
-    count.textContent=`${current+1} / ${slides.length}`;
-    progress.style.width=`${((current+1)/slides.length)*100}%`;
-    prev.disabled=current===0;
-    next.disabled=current===slides.length-1;
-    next.textContent=current===slides.length-1?"End":"Next";
+    slides.forEach((slide,i)=>{const active=i===current;slide.classList.toggle("active",active);slide.setAttribute("aria-hidden",String(!active))});
+    document.getElementById("count").textContent=`${current+1} / ${slides.length}`;
+    document.getElementById("progress").style.width=`${(current+1)/slides.length*100}%`;
+    document.getElementById("prev").disabled=current===0;
+    document.getElementById("next").disabled=current===slides.length-1;
+    document.getElementById("next").textContent=current===slides.length-1?"End":"Next";
     document.title=`${current+1}. ${slides[current].dataset.title} — Clarity Labs`;
     history.replaceState(null,"",`${location.pathname}?slide=${current+1}`);
+    broadcastState();
   }
-
-  prev.addEventListener("click",()=>show(current-1));
-  next.addEventListener("click",()=>show(current+1));
+  document.getElementById("prev").addEventListener("click",()=>show(current-1));
+  document.getElementById("next").addEventListener("click",()=>show(current+1));
   addEventListener("keydown",event=>{
     if(event.target.matches("a,button,input,textarea,select"))return;
     if(["ArrowRight","PageDown"," "].includes(event.key)){event.preventDefault();show(current+1)}
@@ -364,14 +431,15 @@
     if(event.key==="Home"){event.preventDefault();show(0)}
     if(event.key==="End"){event.preventDefault();show(slides.length-1)}
   });
-  fullscreen.addEventListener("click",async()=>{
-    try{
-      if(!document.fullscreenElement){await document.documentElement.requestFullscreen();fullscreen.textContent="Exit full screen"}
-      else{await document.exitFullscreen();fullscreen.textContent="Full screen"}
-    }catch{}
+  document.querySelectorAll("[data-reset-poll]").forEach(button=>button.addEventListener("click",()=>{
+    const id=button.dataset.resetPoll;pollVotes(id).clear();renderPoll(id);broadcast({type:"poll-reset",pollId:id})
+  }));
+  document.getElementById("fullscreen").addEventListener("click",async()=>{
+    try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}
   });
-  document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement)fullscreen.textContent="Full screen"});
-  show(initial);
+  for(const id of Object.keys(POLLS))renderPoll(id);
+  renderConnection();renderQuestions();show(current);startRoom();
+  addEventListener("beforeunload",()=>{try{peer?.destroy();localChannel?.close()}catch{}});
 </script>
 </body>
 </html>
