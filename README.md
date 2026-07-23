@@ -2,7 +2,7 @@
 
 Clarity Labs is a polished, browser-based skin analysis prototype that uses a trained computer-vision model to detect and classify visible blemishes from an uploaded photo.
 
-Users can upload a clear photo, view detected blemishes with labels and bounding boxes, receive a neutral visible-activity summary, and generate a personalized skincare plan based on the analysis.
+Users can upload a clear photo, view detected blemishes with labels and bounding boxes, receive an overall severity rating, and generate a personalized skincare plan based on the analysis.
 
 > Clarity Labs is an educational prototype and is not a medical diagnostic tool.
 
@@ -16,7 +16,7 @@ Users can upload a clear photo, view detected blemishes with labels and bounding
 - Detect blackheads, papules, pustules, whiteheads, nodules, and dark spots
 - Display detected blemishes with labels and bounding boxes
 - Count blemishes by type
-- Summarize visible activity without presenting a medical severity rating
+- Calculate an overall severity rating
 - Generate a personalized skincare routine
 - Protect private API keys through serverless endpoints
 - Work across desktop and mobile devices
@@ -33,16 +33,11 @@ The computer-vision model scans the photo and identifies visible blemishes.
 
 ### 3. Review the Results
 
-Clarity Labs displays each detected blemish, organizes the results by type, and summarizes visible activity.
+Clarity Labs displays each detected blemish, organizes the results by type, and calculates an overall severity rating.
 
-### 4. Generate an Image-Grounded Plan
+### 4. Generate a Plan
 
-The same size-normalized photo and Roboflow detections are sent transiently to Groq Vision. Groq inspects the
-visible distribution and image quality, reconciles those observations with the detector's classes and boxes, and
-generates a photo-specific routine. The app does not save the uploaded image.
-
-The deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`. You can optionally set `GROQ_VISION_MODEL`; it
-defaults to `qwen/qwen3.6-27b`.
+The detection results are used to generate a personalized skincare routine with ingredient and product-category guidance.
 
 ## Detected Classes
 
