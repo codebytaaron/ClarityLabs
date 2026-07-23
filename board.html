@@ -19,6 +19,7 @@
   input{width:100%;border:1px solid var(--line);background:#fff;border-radius:13px;padding:14px;outline:none}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
   .counter{text-align:right;color:var(--soft);font-size:11px;margin:6px 2px 15px}.actions{display:grid;gap:9px}.btn{border:0;border-radius:999px;padding:12px 16px;font-weight:700;cursor:pointer}.primary{background:var(--ink);color:var(--paper)}.primary:hover{background:var(--accent)}.secondary{background:transparent;border:1px solid var(--line)}.danger{background:transparent;color:var(--accent)}
   .status{margin-top:16px;min-height:20px;font-size:13px;font-weight:700;color:var(--green)}.status.problem{color:var(--accent)}.share{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}.share code{display:block;margin-top:7px;font-size:12px;color:var(--soft);overflow-wrap:anywhere}
+  .question-bank{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}.bank-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}.presets{display:grid;gap:8px}.preset{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px}.preset-text{font:400 16px/1.3 Fraunces;margin-bottom:10px}.preset-actions{display:flex;gap:7px}.preset-btn{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer}.preset-btn.use{background:var(--ink);border-color:var(--ink);color:var(--paper)}.preset-btn:hover{border-color:var(--accent)}
   .wall{min-height:70vh;display:flex;flex-direction:column}.wall-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line)}
   .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}.count{flex:none;background:var(--ink);color:var(--paper);border-radius:999px;padding:9px 13px;font-size:13px;font-weight:700}
   .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}.answer{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;font:400 clamp(17px,2vw,24px)/1.25 Fraunces;overflow-wrap:anywhere}.empty{grid-column:1/-1;display:grid;place-items:center;min-height:340px;color:var(--soft);font-size:17px;text-align:center}
@@ -53,6 +54,10 @@
         <button id="clearAnswers" class="btn danger" type="button">Clear these answers</button>
       </div>
       <div id="status" class="status" role="status"></div>
+      <section class="question-bank">
+        <div class="bank-title">Ready-made questions</div>
+        <div id="presets" class="presets"></div>
+      </section>
       <div class="share">
         <strong>Audience link</strong><code>anche-gamma.vercel.app/audience.html</code>
       </div>
@@ -77,9 +82,31 @@
   const input=document.getElementById("questionInput"),status=document.getElementById("status");
   const activeQuestion=document.getElementById("activeQuestion"),answers=document.getElementById("answers");
   let questionId="",pollTimer=null;
+  const presetQuestions=[
+    "What is the biggest problem with today’s skincare advice?",
+    "Would you trust AI to help explain what is visible in a skin photo?",
+    "What matters most in a personalized skincare recommendation?",
+    "What surprised you most about how the model works?",
+    "Where could computer vision make healthcare easier to understand?",
+    "What would make you feel comfortable using this product?",
+    "Which Clarity Labs feature feels most useful to you?",
+    "What is one improvement you would add to Clarity Labs?",
+    "After seeing the demo, would you try this tool yourself?",
+    "What question do you still have for our team?"
+  ];
 
   function escapeHTML(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
   function showStatus(text,problem=false){status.textContent=text;status.classList.toggle("problem",problem)}
+  function usePreset(text){
+    input.value=text;document.getElementById("characters").textContent=text.length;
+    input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});showStatus("Question added. Open it when you are ready.");
+  }
+  async function copyPreset(text,button){
+    try{
+      await navigator.clipboard.writeText(text);const original=button.textContent;button.textContent="Copied";
+      setTimeout(()=>button.textContent=original,1200);
+    }catch{usePreset(text);showStatus("Question added to the box. Copy it from there.",true)}
+  }
   function requireKey(message){
     sessionStorage.removeItem("clarity_board_key");hostKey="";clearInterval(pollTimer);
     app.classList.add("hidden");locked.classList.remove("hidden");
@@ -146,6 +173,19 @@
   document.getElementById("openQuestion").addEventListener("click",()=>setQuestion(true));
   document.getElementById("closeQuestion").addEventListener("click",()=>setQuestion(false));
   document.getElementById("clearAnswers").addEventListener("click",clearAnswers);
+  document.getElementById("presets").innerHTML=presetQuestions.map((text,index)=>`
+    <article class="preset">
+      <div class="preset-text">${escapeHTML(text)}</div>
+      <div class="preset-actions">
+        <button class="preset-btn use" type="button" data-use="${index}">Use question</button>
+        <button class="preset-btn" type="button" data-copy="${index}">Copy</button>
+      </div>
+    </article>`).join("");
+  document.getElementById("presets").addEventListener("click",event=>{
+    const use=event.target.closest("[data-use]"),copy=event.target.closest("[data-copy]");
+    if(use)usePreset(presetQuestions[Number(use.dataset.use)]);
+    if(copy)copyPreset(presetQuestions[Number(copy.dataset.copy)],copy);
+  });
 
   function openBoard(){
     locked.classList.add("hidden");app.classList.remove("hidden");
