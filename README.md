@@ -18,7 +18,7 @@ Users can upload a clear photo, view detected blemishes with labels and bounding
 - Count blemishes by type
 - Summarize visible activity without presenting a medical severity rating
 - Generate a personalized skincare routine
-- Run a short audience-facing deck with real-time polls and live questions
+- Run an unlisted audience-facing deck with automatic joining, real-time polls, live questions, and feedback
 - Protect private API keys through serverless endpoints
 - Work across desktop and mobile devices
 
@@ -66,6 +66,6 @@ Clarity Labs is trained to identify:
 ├── app.html
 ├── index.html
 ├── join.html
-├── presentation.html
+├── presentation.html      # Unlisted presenter-only route
 ├── README.md
 └── vercel.json  

@@ -4,38 +4,27 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Join Clarity Labs Live</title>
-<meta name="description" content="Join the Clarity Labs live presentation, answer polls, and submit questions." />
+<meta name="description" content="Join the Clarity Labs live presentation, answer polls, ask questions, and share feedback." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <style>
-  :root{--paper:#F2EEE6;--paper-2:#EAE4D8;--ink:#17140F;--ink-soft:#5B554A;--line:#DAD3C4;--accent:#E8563A;--teal:#2E6E63;--card:#FBF9F4}
+  :root{--paper:#F2EEE6;--ink:#17140F;--ink-soft:#5B554A;--line:#DAD3C4;--accent:#E8563A;--teal:#2E6E63;--card:#FBF9F4}
   *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font-family:"Inter",-apple-system,sans-serif}
   h1,h2{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-.025em}button,input,textarea{font:inherit}
-  .shell{width:min(620px,100%);margin:0 auto;padding:24px 20px 56px}
-  .brand{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;margin-bottom:48px}
+  .shell{width:min(620px,100%);margin:0 auto;padding:24px 20px 56px}.brand{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;margin-bottom:48px}
   .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative}.mark::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
-  h1{font-size:clamp(48px,13vw,76px);line-height:.92;margin:0 0 14px}.accent{color:var(--accent);font-style:italic}
-  .lead{font-size:17px;line-height:1.5;color:var(--ink-soft);margin:0 0 28px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:16px}
-  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink-soft);margin:0 0 8px}
-  input,textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:13px;padding:14px 15px;color:var(--ink);outline:none}
-  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
-  .room-input{text-transform:uppercase;letter-spacing:.16em;font-size:24px;font-weight:700}
-  .field{margin-bottom:17px}.join-btn,.option{width:100%;border:0;border-radius:14px;padding:15px;font-weight:700;cursor:pointer}
-  .join-btn{background:var(--ink);color:var(--paper)}.join-btn:hover{background:var(--accent)}
-  .status{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:650;color:var(--ink-soft);margin-bottom:18px}
-  .dot{width:9px;height:9px;border-radius:50%;background:#E4903F}.dot.on{background:var(--teal);box-shadow:0 0 0 5px rgba(46,110,99,.12)}
-  .poll h2{font-size:34px;line-height:1.06;margin:0 0 18px}.options{display:grid;gap:10px}
-  .option{background:var(--paper);border:1px solid var(--line);text-align:left;transition:.2s}
-  .option:hover,.option.selected{border-color:var(--accent);background:rgba(232,86,58,.08);transform:translateY(-1px)}
-  .option.selected::after{content:"Selected";float:right;color:var(--accent);font-size:12px}
-  .waiting{text-align:center;padding:30px 16px;color:var(--ink-soft);line-height:1.5}
-  textarea{min-height:92px;resize:vertical}.ask-row{display:flex;gap:10px;align-items:center;margin-top:10px}
-  .ask-btn{border:0;background:var(--teal);color:#fff;border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer}
-  .ask-note{font-size:12px;color:var(--ink-soft)}.toast{font-size:13px;color:var(--teal);font-weight:700;min-height:20px;margin-top:8px}
-  .hidden{display:none!important}.fine{font-size:11px;line-height:1.5;color:var(--ink-soft);margin-top:24px;text-align:center}
+  h1{font-size:clamp(48px,13vw,76px);line-height:.92;margin:0 0 14px}.accent{color:var(--accent);font-style:italic}.lead{font-size:17px;line-height:1.5;color:var(--ink-soft);margin:0 0 28px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:16px}label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink-soft);margin:0 0 8px}
+  input,textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:13px;padding:14px 15px;color:var(--ink);outline:none}input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
+  .join-btn,.option{width:100%;border:0;border-radius:14px;padding:15px;font-weight:700;cursor:pointer}.join-btn{background:var(--ink);color:var(--paper);margin-top:14px}.join-btn:hover{background:var(--accent)}
+  .status{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:650;color:var(--ink-soft);margin-bottom:18px}.dot{width:9px;height:9px;border-radius:50%;background:#E4903F}.dot.on{background:var(--teal);box-shadow:0 0 0 5px rgba(46,110,99,.12)}
+  .focus{text-align:center;padding:38px 22px}.focus-icon{font-size:46px;margin-bottom:13px}.focus h2,.poll h2,.interaction h2{font-size:34px;line-height:1.06;margin:0 0 12px}.focus p,.interaction p{color:var(--ink-soft);line-height:1.5;margin:0}
+  .options{display:grid;gap:10px;margin-top:18px}.option{background:var(--paper);border:1px solid var(--line);text-align:left;transition:.2s}.option:hover,.option.selected{border-color:var(--accent);background:rgba(232,86,58,.08);transform:translateY(-1px)}.option.selected::after{content:"Selected";float:right;color:var(--accent);font-size:12px}
+  textarea{min-height:98px;resize:vertical;margin-top:14px}.action-row{display:flex;gap:10px;align-items:center;margin-top:10px}.action{border:0;background:var(--teal);color:#fff;border-radius:999px;padding:11px 18px;font-weight:700;cursor:pointer}
+  .rating{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0}.rate{border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 4px;font-weight:750;cursor:pointer}.rate.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+  .toast{font-size:13px;color:var(--teal);font-weight:700;min-height:20px;margin-top:8px}.hidden{display:none!important}.fine{font-size:11px;line-height:1.5;color:var(--ink-soft);margin-top:24px;text-align:center}
 </style>
 </head>
 <body>
@@ -44,10 +33,10 @@
 
   <section id="joinScreen">
     <h1>Join the<br><span class="accent">conversation.</span></h1>
-    <p class="lead">Answer live polls and send questions to the presentation screen.</p>
+    <p class="lead">Enter a nickname. The presenter controls what appears next.</p>
     <div class="card">
-      <div class="field"><label for="room">Room code</label><input class="room-input" id="room" maxlength="5" autocomplete="off" placeholder="ABCDE"></div>
-      <div class="field"><label for="name">First name or nickname</label><input id="name" maxlength="30" autocomplete="name" placeholder="Optional"></div>
+      <label for="name">First name or nickname</label>
+      <input id="name" maxlength="30" autocomplete="name" placeholder="Your nickname">
       <button class="join-btn" id="join" type="button">Join live</button>
       <div class="toast" id="joinError" role="alert"></div>
     </div>
@@ -55,102 +44,82 @@
 
   <section id="liveScreen" class="hidden">
     <div class="status"><span class="dot" id="dot"></span><span id="status">Connecting…</span></div>
-    <div class="card poll" id="pollCard">
-      <div class="waiting">The next live question will appear here.</div>
-    </div>
-    <div class="card">
-      <label for="question">Ask the presenters</label>
-      <textarea id="question" maxlength="140" placeholder="Type a question for the team…"></textarea>
-      <div class="ask-row"><button class="ask-btn" id="ask" type="button">Send question</button><span class="ask-note">Appears on the Q&amp;A slide</span></div>
-      <div class="toast" id="questionStatus" role="status"></div>
-    </div>
-    <p class="fine">Poll answers are anonymous. Your nickname appears only beside questions. Responses travel directly to the presenter’s browser for this live session.</p>
+    <div id="stage" aria-live="polite"></div>
+    <p class="fine">Poll answers are anonymous. Your nickname appears with questions and optional feedback. Responses are used only for this live session.</p>
   </section>
 </main>
 
 <script>
-  const roomInput=document.getElementById("room"),nameInput=document.getElementById("name");
-  const preset=new URLSearchParams(location.search).get("room");
-  if(preset)roomInput.value=preset.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5);
+  const HOST_ID="claritylabs-live-event-v2",CHANNEL_NAME="claritylabs-live-event-v2";
+  const nameInput=document.getElementById("name"),stage=document.getElementById("stage");
   const clientId=sessionStorage.getItem("clarity_audience_id")||`aud-${Math.random().toString(36).slice(2,10)}`;
   sessionStorage.setItem("clarity_audience_id",clientId);
-  let peer=null,conn=null,currentPoll=null,selections={},localChannel=null,connected=false;
-  function safe(value,max){return String(value||"").replace(/[<>]/g,"").trim().slice(0,max)}
+  let peer=null,conn=null,currentPoll=null,selections={},localChannel=null,connected=false,rating=0;
+  function safe(value,max=140){return String(value||"").replace(/[<>]/g,"").trim().slice(0,max)}
   function setStatus(text,on=false){document.getElementById("status").textContent=text;document.getElementById("dot").classList.toggle("on",on)}
+  function sendPayload(payload){
+    const message={...payload,clientId,name:safe(nameInput.value,30)};
+    if(conn?.open)conn.send(message);
+    else localChannel?.postMessage({source:"audience",clientId,payload:message});
+  }
+  function renderFocus(){
+    currentPoll=null;
+    stage.innerHTML='<div class="card focus"><div class="focus-icon">👀</div><h2>Eyes on the screen</h2><p>The presenter is sharing. We will let you know when it is your turn.</p></div>';
+  }
   function renderPoll(poll){
-    currentPoll=poll;
-    const card=document.getElementById("pollCard");
-    if(!poll){card.innerHTML='<div class="waiting">Follow the presentation—the next live question will appear here.</div>';return}
-    const selected=selections[poll.id];
-    card.innerHTML=`<h2>${poll.question}</h2><div class="options">${poll.options.map(o=>`<button class="option ${selected===o.id?"selected":""}" type="button" data-option="${o.id}">${o.label}</button>`).join("")}</div><div class="toast" id="voteStatus">${selected?"Answer received—tap another option to change it.":"Choose one answer."}</div>`;
-    card.querySelectorAll("[data-option]").forEach(button=>button.addEventListener("click",()=>{
-      if(!connected)return;
-      selections[poll.id]=button.dataset.option;
-      sendPayload({type:"vote",pollId:poll.id,option:button.dataset.option});
-      renderPoll(poll);
-    }));
+    currentPoll=poll;const selected=selections[poll.id];
+    stage.innerHTML=`<div class="card poll"><h2>${poll.question}</h2><div class="options">${poll.options.map(o=>`<button class="option ${selected===o.id?"selected":""}" type="button" data-option="${o.id}">${o.label}</button>`).join("")}</div><div class="toast" id="voteStatus">${selected?"Answer received—tap another option to change it.":"Choose one answer."}</div></div>`;
+    stage.querySelectorAll("[data-option]").forEach(button=>button.addEventListener("click",()=>{if(!connected)return;selections[poll.id]=button.dataset.option;sendPayload({type:"vote",pollId:poll.id,option:button.dataset.option});renderPoll(poll)}));
+  }
+  function renderQuestions(){
+    currentPoll=null;
+    stage.innerHTML='<div class="card interaction"><h2>Ask the presenters</h2><p>Your question will appear on the main screen.</p><textarea id="question" maxlength="140" placeholder="What would you like to know?"></textarea><div class="action-row"><button class="action" id="ask" type="button">Send question</button></div><div class="toast" id="questionStatus" role="status"></div></div>';
+    document.getElementById("ask").addEventListener("click",()=>{const text=safe(document.getElementById("question").value);if(!text)return;document.getElementById("questionStatus").textContent="Sending…";sendPayload({type:"question",text,questionId:`q-${Date.now()}`})});
+  }
+  function renderFeedback(){
+    currentPoll=null;
+    stage.innerHTML=`<div class="card interaction"><h2>Help us improve</h2><p>How useful was this experience?</p><div class="rating">${[1,2,3,4,5].map(n=>`<button class="rate ${rating===n?"selected":""}" type="button" data-rate="${n}" aria-label="${n} out of 5">${n}</button>`).join("")}</div><textarea id="feedback" maxlength="180" placeholder="One thing we should improve (optional)"></textarea><div class="action-row"><button class="action" id="sendFeedback" type="button">Send feedback</button></div><div class="toast" id="feedbackStatus" role="status"></div></div>`;
+    stage.querySelectorAll("[data-rate]").forEach(button=>button.addEventListener("click",()=>{rating=Number(button.dataset.rate);renderFeedback()}));
+    document.getElementById("sendFeedback").addEventListener("click",()=>{if(!rating){document.getElementById("feedbackStatus").textContent="Choose a rating first.";return}document.getElementById("feedbackStatus").textContent="Sending…";sendPayload({type:"feedback",rating,text:safe(document.getElementById("feedback").value,180),feedbackId:`f-${Date.now()}`})});
+  }
+  function renderMode(mode,poll){
+    if(mode==="poll"&&poll)renderPoll(poll);
+    else if(mode==="questions")renderQuestions();
+    else if(mode==="feedback")renderFeedback();
+    else renderFocus();
   }
   function handleData(data){
     if(!data||typeof data!=="object")return;
     if(data.type==="state"){
       connected=true;document.getElementById("joinScreen").classList.add("hidden");document.getElementById("liveScreen").classList.remove("hidden");
-      setStatus(`Connected · ${data.audience} live`,true);renderPoll(data.poll);
+      setStatus(`Connected · ${data.audience} live`,true);renderMode(data.mode,data.poll);
     }
-    if(data.type==="vote-ack"){selections[data.pollId]=data.option;if(currentPoll?.id===data.pollId)renderPoll(currentPoll)}
+    if(data.type==="vote-ack"){selections[data.pollId]=data.option}
     if(data.type==="poll-reset"){delete selections[data.pollId];if(currentPoll?.id===data.pollId)renderPoll(currentPoll)}
-    if(data.type==="question-ack"){document.getElementById("question").value="";document.getElementById("questionStatus").textContent="Question sent to the presentation."}
+    if(data.type==="question-ack"){renderQuestions();document.getElementById("questionStatus").textContent="Question sent to the main screen."}
+    if(data.type==="feedback-ack"){renderFeedback();document.getElementById("feedbackStatus").textContent="Thank you—your feedback was received."}
   }
-  function sendPayload(payload){
-    const message={...payload,clientId};
-    if(conn?.open)conn.send(message);
-    else localChannel?.postMessage({source:"audience",clientId,payload:message});
-  }
-  function joinRoom(){
-    const room=safe(roomInput.value.toUpperCase().replace(/[^A-Z0-9]/g,""),5),name=safe(nameInput.value,30);
-    if(room.length!==5){document.getElementById("joinError").textContent="Enter the five-character room code.";return}
-    document.getElementById("joinError").textContent="";
-    document.getElementById("join").disabled=true;document.getElementById("join").textContent="Connecting…";
-    if(typeof Peer!=="function"){document.getElementById("joinError").textContent="Live service could not load. Check your connection.";return}
+  function joinLive(){
+    const name=safe(nameInput.value,30);
+    if(!name){document.getElementById("joinError").textContent="Please enter a nickname.";nameInput.focus();return}
+    document.getElementById("joinError").textContent="";document.getElementById("join").disabled=true;document.getElementById("join").textContent="Connecting…";
     if("BroadcastChannel" in window){
-      localChannel=new BroadcastChannel(`claritylabs-${room}`);
-      localChannel.onmessage=event=>{
-        const message=event.data;
-        if(message?.source==="host"&&message.target===clientId)handleData(message.payload);
-      };
+      localChannel=new BroadcastChannel(CHANNEL_NAME);
+      localChannel.onmessage=event=>{const message=event.data;if(message?.source==="host"&&message.target===clientId)handleData(message.payload)};
       localChannel.postMessage({source:"audience",clientId,payload:{type:"join",name,clientId}});
     }
+    if(typeof Peer!=="function"){document.getElementById("joinError").textContent="Live service could not load. Check your connection.";return}
     peer=new Peer(undefined,{host:"0.peerjs.com",port:443,path:"/",secure:true,debug:1});
     peer.on("open",()=>{
-      conn=peer.connect(`claritylabs-${room.toLowerCase()}`,{metadata:{name,clientId},serialization:"json",reliable:true});
-      conn.on("open",()=>{
-        connected=true;document.getElementById("joinScreen").classList.add("hidden");document.getElementById("liveScreen").classList.remove("hidden");setStatus("Connected",true);
-      });
-      conn.on("data",handleData);
-      conn.on("close",()=>setStatus("Disconnected—refresh to rejoin"));
-      conn.on("error",()=>setStatus("Connection issue—refresh to retry"));
+      conn=peer.connect(HOST_ID,{metadata:{name,clientId},serialization:"json",reliable:true});
+      conn.on("open",()=>{connected=true;document.getElementById("joinScreen").classList.add("hidden");document.getElementById("liveScreen").classList.remove("hidden");setStatus("Connected",true)});
+      conn.on("data",handleData);conn.on("close",()=>setStatus("Presentation ended"));conn.on("error",()=>setStatus("Connection issue—refresh to retry"));
     });
-    peer.on("error",error=>{
-      if(connected)return;
-      document.getElementById("join").disabled=false;document.getElementById("join").textContent="Try again";
-      document.getElementById("joinError").textContent=error.type==="peer-unavailable"?"That room is not open yet. Ask the presenter to open the deck.":"Could not join. Check the code and try again.";
-    });
-    setTimeout(()=>{
-      if(!connected){
-        document.getElementById("join").disabled=false;document.getElementById("join").textContent="Try again";
-        document.getElementById("joinError").textContent="The room did not answer. Check the code and try again.";
-      }else{
-        document.getElementById("joinScreen").classList.add("hidden");document.getElementById("liveScreen").classList.remove("hidden");
-      }
-    },7000);
+    peer.on("error",()=>{if(connected)return;document.getElementById("join").disabled=false;document.getElementById("join").textContent="Try again";document.getElementById("joinError").textContent="The presentation has not started yet. Try again when the presenter is ready."});
+    setTimeout(()=>{if(!connected){document.getElementById("join").disabled=false;document.getElementById("join").textContent="Try again";document.getElementById("joinError").textContent="Waiting for the presenter. Try again in a moment."}},7000);
   }
-  document.getElementById("join").addEventListener("click",joinRoom);
-  roomInput.addEventListener("keydown",e=>{if(e.key==="Enter")joinRoom()});
-  document.getElementById("ask").addEventListener("click",()=>{
-    const text=safe(document.getElementById("question").value,140),name=safe(nameInput.value,30);
-    if(!text||!connected)return;
-    document.getElementById("questionStatus").textContent="Sending…";
-    sendPayload({type:"question",text,name,questionId:`q-${Date.now()}`});
-  });
+  document.getElementById("join").addEventListener("click",joinLive);
+  nameInput.addEventListener("keydown",event=>{if(event.key==="Enter")joinLive()});
   addEventListener("beforeunload",()=>{try{localChannel?.postMessage({source:"audience",clientId,payload:{type:"leave",clientId}});peer?.destroy();localChannel?.close()}catch{}});
 </script>
 </body>

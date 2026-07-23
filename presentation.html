@@ -100,6 +100,14 @@
   .question p{font-family:"Fraunces";font-size:22px;line-height:1.3;margin:0}
   .question span{display:block;font-size:11px;color:var(--ink-soft);margin-top:7px}
   .empty-question{font-size:18px;color:var(--ink-soft);padding:26px;border:1px dashed var(--line);border-radius:16px;text-align:center}
+  .feedback-layout{display:grid;grid-template-columns:.7fr 1.3fr;gap:42px;align-items:center}
+  .feedback-summary{display:grid;grid-template-columns:180px 1fr;gap:16px}
+  .rating-card,.feedback-feed{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+  .rating-number{font-family:"Fraunces";font-size:70px;line-height:1;color:var(--accent)}
+  .rating-label{color:var(--ink-soft);font-size:13px;margin-top:8px}
+  .feedback-feed{display:grid;gap:10px;max-height:330px;overflow:auto}
+  .feedback-item{border-bottom:1px solid var(--line);padding-bottom:10px;font-size:14px;line-height:1.45}
+  .feedback-item:last-child{border-bottom:0}.feedback-item span{display:block;color:var(--ink-soft);font-size:11px;margin-top:4px}
 
   .team-line{font-size:17px;color:var(--ink-soft);margin-top:25px;line-height:1.7}
   .controls{border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
@@ -114,7 +122,7 @@
   .nav-btn:disabled{opacity:.35;cursor:not-allowed}.full-btn{position:fixed;right:24px;top:14px;z-index:30;font-size:12px}
 
   @media(max-width:850px){
-    .topbar{grid-template-columns:1fr auto}.mode{display:none}.cover,.join-grid,.poll-layout,.demo,.questions{grid-template-columns:1fr}
+    .topbar{grid-template-columns:1fr auto}.mode{display:none}.cover,.join-grid,.poll-layout,.demo,.questions,.feedback-layout{grid-template-columns:1fr}
     .cover-side,.qr{display:none}.cards,.flow,.safety{grid-template-columns:1fr}.slide{align-items:start}
     .hint,.full-btn{display:none}.controls{grid-template-columns:1fr auto}.question-feed{max-height:none}
   }
@@ -162,8 +170,7 @@
           <div class="eyebrow">Join the presentation</div>
           <h2>Your answers go <span class="accent">live.</span></h2>
           <div class="join-url">anche-gamma.vercel.app/join.html</div>
-          <div>Enter room code:</div>
-          <div class="room-code" id="roomCode">—</div>
+          <div>No code needed. Scan, add a nickname, and join.</div>
           <div class="connected-line" id="joinCount">Waiting for the first person…</div>
         </div>
         <div class="qr" id="qr" aria-label="QR code for audience join page"></div>
@@ -250,7 +257,7 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Audience questions">
+    <section class="slide" data-title="Audience questions" data-interaction="questions">
       <div class="inner questions">
         <div>
           <div class="eyebrow">Live Q&amp;A</div>
@@ -271,10 +278,29 @@
         <p class="team-line">Teddy Aaron · June Meyer · Rikki Chatterjee · Kai Izzi<br>Babson AI Launchpad</p>
       </div>
     </section>
+
+    <section class="slide" data-title="Audience feedback" data-interaction="feedback">
+      <div class="inner feedback-layout">
+        <div>
+          <div class="eyebrow">One-minute feedback</div>
+          <h2>Help us make it <span class="accent">better.</span></h2>
+          <p class="lead">Rate the experience on your phone. Results update here.</p>
+        </div>
+        <div class="feedback-summary">
+          <div class="rating-card">
+            <div class="rating-number" id="feedbackAverage">—</div>
+            <div class="rating-label"><b id="feedbackCount">0</b> responses · out of 5</div>
+          </div>
+          <div class="feedback-feed" id="feedbackFeed">
+            <div class="empty-question">Audience feedback will appear here in real time.</div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <footer class="controls">
-    <div class="progress-wrap"><span class="count" id="count">1 / 10</span><div class="progress"><span id="progress"></span></div></div>
+    <div class="progress-wrap"><span class="count" id="count">1 / 11</span><div class="progress"><span id="progress"></span></div></div>
     <div class="hint">Arrow keys or spacebar to advance</div>
     <div class="navs"><button class="nav-btn" id="prev" type="button">Previous</button><button class="nav-btn primary" id="next" type="button">Next</button></div>
   </footer>
@@ -295,25 +321,24 @@
       {id:"safety",label:"Safety and limits",color:"#4A8BB0"}
     ]}
   };
-  const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const makeCode=()=>Array.from({length:5},()=>alphabet[Math.floor(Math.random()*alphabet.length)]).join("");
-  const roomCode=sessionStorage.getItem("clarity_live_room")||makeCode();
-  sessionStorage.setItem("clarity_live_room",roomCode);
-  const hostId=`claritylabs-${roomCode.toLowerCase()}`;
-  const joinUrl=`${location.origin}/join.html?room=${roomCode}`;
+  const hostId="claritylabs-live-event-v2";
+  const joinUrl=`${location.origin}/join.html`;
   const slides=[...document.querySelectorAll(".slide")];
-  const connections=new Map(),votes=new Map(),questions=new Map();
-  const localChannel="BroadcastChannel" in window?new BroadcastChannel(`claritylabs-${roomCode}`):null;
+  const connections=new Map(),votes=new Map(),questions=new Map(),feedback=new Map();
+  const localChannel="BroadcastChannel" in window?new BroadcastChannel("claritylabs-live-event-v2"):null;
   let current=Math.max(0,Math.min(slides.length-1,(Number(new URLSearchParams(location.search).get("slide"))||1)-1));
   let peer=null,roomReady=false;
 
-  document.getElementById("roomCode").textContent=roomCode;
   try{new QRCode(document.getElementById("qr"),{text:joinUrl,width:220,height:220,colorDark:"#17140F",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M})}catch{}
 
   function safeText(value,max=140){return String(value||"").replace(/[<>]/g,"").trim().slice(0,max)}
   function currentPoll(){
     const id=slides[current].dataset.poll;
     return id?POLLS[id]:null;
+  }
+  function currentMode(){
+    if(currentPoll())return "poll";
+    return slides[current].dataset.interaction||"focus";
   }
   function pollVotes(id){
     if(!votes.has(id))votes.set(id,new Map());
@@ -322,7 +347,7 @@
   function broadcast(payload){for(const conn of connections.values())if(conn.open)try{conn.send(payload)}catch{}}
   function sendState(conn){
     const poll=currentPoll();
-    conn.send({type:"state",room:roomCode,audience:connections.size,poll});
+    conn.send({type:"state",audience:connections.size,mode:currentMode(),poll});
   }
   function broadcastState(){for(const conn of connections.values())if(conn.open)sendState(conn)}
   function renderConnection(){
@@ -348,6 +373,16 @@
     feed.innerHTML=items.length?items.map(q=>`<article class="question"><p>${q.text}</p><span>${q.name||"Anonymous"}</span></article>`).join("")
       :'<div class="empty-question">Audience questions will appear here in real time.</div>';
   }
+  function renderFeedback(){
+    const items=[...feedback.values()].sort((a,b)=>b.time-a.time);
+    const average=items.length?(items.reduce((sum,item)=>sum+item.rating,0)/items.length).toFixed(1):"—";
+    document.getElementById("feedbackAverage").textContent=average;
+    document.getElementById("feedbackCount").textContent=items.length;
+    const feed=document.getElementById("feedbackFeed");
+    const comments=items.filter(item=>item.text).slice(0,7);
+    feed.innerHTML=comments.length?comments.map(item=>`<div class="feedback-item">${item.text}<span>${item.name||"Anonymous"} · ${item.rating}/5</span></div>`).join("")
+      :'<div class="empty-question">Audience feedback will appear here in real time.</div>';
+  }
   function handleMessage(conn,data){
     if(!data||typeof data!=="object")return;
     const clientKey=safeText(data.clientId,80)||conn.peer;
@@ -365,6 +400,16 @@
       questions.set(`${clientKey}-${questionId}`,{text,name,time:Date.now()});
       renderQuestions();
       conn.send({type:"question-ack"});
+    }
+    if(data.type==="feedback"){
+      const rawRating=Number(data.rating);
+      if(!Number.isFinite(rawRating)||rawRating<1||rawRating>5)return;
+      const rating=Math.round(rawRating);
+      const text=safeText(data.text,180),name=safeText(data.name,30);
+      const feedbackId=safeText(data.feedbackId,80)||String(Date.now());
+      feedback.set(clientKey,{rating,text,name,time:Date.now(),feedbackId});
+      renderFeedback();
+      conn.send({type:"feedback-ack"});
     }
   }
   function acceptConnection(conn){
@@ -438,7 +483,7 @@
     try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}
   });
   for(const id of Object.keys(POLLS))renderPoll(id);
-  renderConnection();renderQuestions();show(current);startRoom();
+  renderConnection();renderQuestions();renderFeedback();show(current);startRoom();
   addEventListener("beforeunload",()=>{try{peer?.destroy();localChannel?.close()}catch{}});
 </script>
 </body>
