@@ -43,16 +43,16 @@
   localStorage.setItem("clarity_audience_id",clientId);
   const answers=JSON.parse(localStorage.getItem("clarity_audience_answers")||"{}");
   const blank=document.getElementById("blank"),card=document.getElementById("questionCard"),question=document.getElementById("question"),answer=document.getElementById("answer"),status=document.getElementById("status"),savedAnswer=document.getElementById("savedAnswer");
-  let activePromptId="",loadingState=false;
+  let activeQuestionId="",loadingState=false;
 
   function saveAnswers(){localStorage.setItem("clarity_audience_answers",JSON.stringify(answers))}
   function showStatus(text,problem=false){status.textContent=text;status.classList.toggle("problem",problem)}
   function renderState(state){
-    const promptId=String(state.promptId||""),text=String(state.question||"");
-    if(!promptId||!text){activePromptId="";card.classList.add("hidden");blank.classList.remove("hidden");return}
-    if(promptId!==activePromptId){
-      activePromptId=promptId;question.textContent=text;answer.value=answers[promptId]||"";
-      savedAnswer.innerHTML=answers[promptId]?`<div class="answer-saved">Your answer: ${answers[promptId].replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`:"";
+    const questionId=String(state.questionId||""),text=String(state.question||"");
+    if(!state.active||!questionId||!text){activeQuestionId="";card.classList.add("hidden");blank.classList.remove("hidden");return}
+    if(questionId!==activeQuestionId){
+      activeQuestionId=questionId;question.textContent=text;answer.value=answers[questionId]||"";
+      savedAnswer.innerHTML=answers[questionId]?`<div class="answer-saved">Your answer: ${answers[questionId].replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`:"";
       document.getElementById("characterCount").textContent=answer.value.length;showStatus("");
     }
     blank.classList.add("hidden");card.classList.remove("hidden");
@@ -60,7 +60,7 @@
   async function loadState(){
     if(loadingState)return;loadingState=true;
     try{
-      const response=await fetch("/api/presentation-state",{cache:"no-store"});
+      const response=await fetch("/api/audience-question",{cache:"no-store"});
       const data=await response.json();
       if(response.ok)renderState(data);
       else if(response.status===503){card.classList.remove("hidden");blank.classList.add("hidden");question.textContent="Audience board setup needed";showStatus("The presenter has not connected storage yet.",true)}
@@ -69,12 +69,12 @@
   answer.addEventListener("input",()=>document.getElementById("characterCount").textContent=answer.value.length);
   document.getElementById("answerForm").addEventListener("submit",async event=>{
     event.preventDefault();const value=answer.value.replace(/\s+/g," ").trim().slice(0,100);
-    if(!activePromptId||!value){showStatus("Type a short answer first.",true);return}
+    if(!activeQuestionId||!value){showStatus("Type a short answer first.",true);return}
     showStatus("Sending…");
     try{
-      const response=await fetch("/api/presentation-responses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({promptId:activePromptId,clientId,answer:value})});
+      const response=await fetch("/api/audience-responses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({questionId:activeQuestionId,clientId,answer:value})});
       const data=await response.json();if(!response.ok)throw new Error(data.error||"Answer could not be sent.");
-      answers[activePromptId]=value;saveAnswers();savedAnswer.innerHTML=`<div class="answer-saved">Your answer: ${value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`;showStatus("Your answer is on the board.");
+      answers[activeQuestionId]=value;saveAnswers();savedAnswer.innerHTML=`<div class="answer-saved">Your answer: ${value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`;showStatus("Your answer was sent.");
     }catch(error){showStatus(error.message||"Answer could not be sent.",true)}
   });
   loadState();setInterval(loadState,1400);

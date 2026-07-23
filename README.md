@@ -49,11 +49,15 @@ The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`.
 1. In Vercel Storage, connect an Upstash Redis database to this project. Vercel supplies
    `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. The native Upstash names
    `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are also supported.
-2. Add `PRESENTATION_HOST_KEY` in Vercel — a long random password for the presenter.
+2. Add `AUDIENCE_BOARD_KEY` in Vercel — a long random password for the private control board.
 3. Redeploy the Vercel project.
-4. Open the presenter deck once with `presentation.html?key=YOUR_PRESENTATION_HOST_KEY`. The key is saved for
-   that browser tab and removed from the visible URL.
-5. Share `audience.html`. There is no login, room code, nickname, or Join button.
+4. Present normally in Google Slides. Open the private control board once with
+   `board.html?key=YOUR_AUDIENCE_BOARD_KEY`; the key is saved for that browser tab and removed from the URL.
+5. Share `audience.html`, or let visitors use the Audience button on the homepage. There is no login,
+   room code, nickname, or Join button.
+
+The control board opens and closes one audience question at a time and shows submitted answers. It is not a
+slideshow and is not linked from the public website.
 
 The storage token and presenter key are used only inside Vercel functions.
 
@@ -75,13 +79,13 @@ Clarity Labs is trained to identify:
 ├── api
 │   ├── _kv.js
 │   ├── advice.js
-│   ├── detect.js
-│   ├── presentation-responses.js
-│   └── presentation-state.js
+│   ├── audience-question.js
+│   ├── audience-responses.js
+│   └── detect.js
 ├── app.html
 ├── audience.html
+├── board.html             # Unlisted audience control board
 ├── IMG_6166.jpeg
 ├── index.html
-├── presentation.html      # Unlisted presenter-only route
 ├── README.md
 └── vercel.json  

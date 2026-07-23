@@ -15,7 +15,7 @@
 - Vercel API routes are the only clients allowed to access Upstash Redis.
 - The Upstash REST URL and token are read from Vercel environment variables.
 - The secret/service-role key is never included in frontend HTML or JavaScript.
-- `PRESENTATION_HOST_KEY` protects slide-state changes and answer clearing.
+- `AUDIENCE_BOARD_KEY` protects question changes and answer clearing on the private control board.
 - SQL setup enables RLS and grants table access only to `service_role`.
 
 ## Functional verification

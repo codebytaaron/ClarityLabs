@@ -1,7 +1,7 @@
 import { cleanText, configured, hostAuthorized, kv, noStore } from "./_kv.js";
 
-const STATE_KEY = "clarity:presentation:state";
-const responsesKey = (promptId) => `clarity:presentation:responses:${promptId}`;
+const STATE_KEY = "clarity:audience:question";
+const responsesKey = (questionId) => `clarity:audience:responses:${questionId}`;
 
 function parseState(stored) {
   try { return stored ? JSON.parse(stored) : null; } catch { return null; }
@@ -28,27 +28,27 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
-      const promptId = cleanText(req.query?.promptId, 60).replace(/[^a-zA-Z0-9_-]/g, "");
-      if (!promptId) {
-        res.status(400).json({ error: "promptId is required.", responses: [] });
+      const questionId = cleanText(req.query?.questionId, 60).replace(/[^a-zA-Z0-9_-]/g, "");
+      if (!questionId) {
+        res.status(400).json({ error: "questionId is required.", responses: [] });
         return;
       }
-      const values = await kv(["HGETALL", responsesKey(promptId)]);
+      const values = await kv(["HGETALL", responsesKey(questionId)]);
       res.status(200).json({ responses: parseResponses(values) });
       return;
     }
 
     if (req.method === "POST") {
-      const promptId = cleanText(req.body?.promptId, 60).replace(/[^a-zA-Z0-9_-]/g, "");
+      const questionId = cleanText(req.body?.questionId, 60).replace(/[^a-zA-Z0-9_-]/g, "");
       const clientId = cleanText(req.body?.clientId, 80).replace(/[^a-zA-Z0-9_-]/g, "");
       const answer = cleanText(req.body?.answer, 100);
-      if (!promptId || clientId.length < 8 || !answer) {
-        res.status(400).json({ error: "A valid prompt, browser ID, and short answer are required." });
+      if (!questionId || clientId.length < 8 || !answer) {
+        res.status(400).json({ error: "A valid question, browser ID, and short answer are required." });
         return;
       }
 
       const state = parseState(await kv(["GET", STATE_KEY]));
-      if (state?.promptId !== promptId) {
+      if (!state?.active || state?.questionId !== questionId) {
         res.status(409).json({ error: "That question is no longer active." });
         return;
       }
@@ -58,22 +58,22 @@ export default async function handler(req, res) {
         answer,
         created_at: new Date().toISOString()
       };
-      await kv(["HSET", responsesKey(promptId), clientId, JSON.stringify(response)]);
+      await kv(["HSET", responsesKey(questionId), clientId, JSON.stringify(response)]);
       res.status(200).json({ ok: true });
       return;
     }
 
     if (req.method === "DELETE") {
       if (!hostAuthorized(req)) {
-        res.status(401).json({ error: "Presenter key is missing or incorrect." });
+        res.status(401).json({ error: "Control-board key is missing or incorrect." });
         return;
       }
-      const promptId = cleanText(req.query?.promptId, 60).replace(/[^a-zA-Z0-9_-]/g, "");
-      if (!promptId) {
-        res.status(400).json({ error: "promptId is required." });
+      const questionId = cleanText(req.query?.questionId, 60).replace(/[^a-zA-Z0-9_-]/g, "");
+      if (!questionId) {
+        res.status(400).json({ error: "questionId is required." });
         return;
       }
-      await kv(["DEL", responsesKey(promptId)]);
+      await kv(["DEL", responsesKey(questionId)]);
       res.status(200).json({ ok: true });
       return;
     }

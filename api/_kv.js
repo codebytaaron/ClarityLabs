@@ -44,7 +44,7 @@ export function cleanText(value, max) {
 }
 
 export function hostAuthorized(req) {
-  const expected = String(process.env.PRESENTATION_HOST_KEY || "");
+  const expected = String(process.env.AUDIENCE_BOARD_KEY || process.env.PRESENTATION_HOST_KEY || "");
   const received = String(req.headers["x-presentation-key"] || "");
   if (!expected || expected.length !== received.length) return false;
   let difference = 0;
