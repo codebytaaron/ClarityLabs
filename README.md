@@ -35,9 +35,14 @@ The computer-vision model scans the photo and identifies visible blemishes.
 
 Clarity Labs displays each detected blemish, organizes the results by type, and calculates an overall severity rating.
 
-### 4. Generate a Plan
+### 4. Generate an Image-Grounded Plan
 
-The detection results are used to generate a personalized skincare routine with ingredient and product-category guidance.
+The same size-normalized photo and Roboflow detections are sent transiently to Groq Vision. Groq inspects the
+visible distribution and image quality, reconciles those observations with the detector's classes and boxes, and
+generates a photo-specific routine. The app does not save the uploaded image.
+
+The deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`. You can optionally set `GROQ_VISION_MODEL`; it
+defaults to `qwen/qwen3.6-27b`.
 
 ## Detected Classes
 

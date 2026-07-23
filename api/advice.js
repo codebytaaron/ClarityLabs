@@ -1,16 +1,30 @@
-// Vercel serverless function — generates skincare guidance from detection results
-// using Groq (OpenAI-compatible API). The key stays server-side.
+// Vercel serverless function — generates image-grounded skincare guidance using
+// Groq Vision plus Roboflow's structured detections. The image is forwarded for
+// this request only; neither this function nor the app stores it.
 //
 // Required env var (Vercel → Settings → Environment Variables):
 //   GROQ_API_KEY   your Groq API key (console.groq.com/keys)
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = process.env.GROQ_VISION_MODEL || "qwen/qwen3.6-27b";
+const MAX_IMAGE_BASE64_LENGTH = 6_000_000;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const SYSTEM_PROMPT = `You are a friendly, evidence-based skincare guide inside an acne-detection app.
-You receive the blemish types and counts an AI vision model found in a user's photo, plus an overall severity.
-Give practical, over-the-counter guidance a general audience can act on. You are NOT a doctor: never diagnose,
-never prescribe prescription-only medication, and keep an encouraging, non-alarming tone.
+You receive the user's actual skin photo, Roboflow object detections, an app-computed severity, and an optional
+user profile. Inspect the photo yourself, then reconcile what is visibly supported with the detector output.
+Give practical over-the-counter guidance. You are NOT a doctor: never diagnose, never claim certainty from a
+photo, never prescribe prescription-only medication, and keep an encouraging, non-alarming tone.
+
+IMAGE-GROUNDING RULES:
+- Make the response specific to this exact photo. Mention 2-4 concrete visible patterns such as where findings
+  are concentrated, whether they appear mostly inflamed or comedonal, visible marks, and any image-quality limit.
+- Treat Roboflow boxes/counts as the primary source for lesion classes and quantities. Do not invent lesion counts.
+- If the photo and detector seem inconsistent, say the scan may be uncertain rather than choosing a diagnosis.
+- Do not infer identity, ethnicity, gender, medical history, skin type, or anything not visibly supported.
+- Do not call normal features medical conditions. Never assess attractiveness.
+- Each routine treatment and product explanation must connect to a detected or visibly supported concern.
+- Avoid generic filler and do not give the same default routine regardless of the findings.
 
 Recommend REAL, widely-available over-the-counter products, split into three price tiers. Use accurate,
 realistic US prices. Tailor every pick to the blemish types actually found (e.g. salicylic acid for
@@ -24,10 +38,12 @@ their stated experience level (don't re-recommend basics to someone experienced)
 
 Respond ONLY with a JSON object in exactly this shape:
 {
-  "summary": "2-3 sentence plain-language read of what was found and what it means, addressed to the user by name if given.",
-  "routine": ["3 to 5 short ordered steps (cleanse, treat, moisturize, SPF, etc.) tailored to the findings"],
+  "summary": "2-3 sentence photo-specific read, addressed to the user by name if given.",
+  "visualFindings": ["2 to 4 concise observations grounded in this photo and detector output"],
+  "imageQuality": "one concise sentence about lighting, framing, or confidence limits; say good enough if appropriate",
+  "routine": ["3 to 5 short ordered steps with timing/frequency, each tailored to the findings"],
   "products": {
-    "budget": [{"name":"Brand + product","targets":"which blemish type it helps","price":"$X","why":"one short sentence"}],
+    "budget": [{"name":"Brand + product","targets":"which visible/detected concern it helps","price":"$X","why":"one photo-specific short sentence"}],
     "mid": [{"name":"...","targets":"...","price":"$X","why":"..."}],
     "premium": [{"name":"...","targets":"...","price":"$X","why":"..."}]
   },
@@ -35,6 +51,18 @@ Respond ONLY with a JSON object in exactly this shape:
 }
 Give 2 products per tier. Budget = drugstore, roughly under $20. Mid = roughly $20-45. Premium = roughly $45+.
 Keep every string concise. No markdown, no text outside the JSON.`;
+
+function cleanPredictions(predictions) {
+  if (!Array.isArray(predictions)) return [];
+  return predictions.slice(0, 250).map(p => ({
+    class: String(p?.class || "unknown").slice(0, 40),
+    confidence: Number.isFinite(Number(p?.confidence)) ? Number(p.confidence) : null,
+    x: Number.isFinite(Number(p?.x)) ? Math.round(Number(p.x)) : null,
+    y: Number.isFinite(Number(p?.y)) ? Math.round(Number(p.y)) : null,
+    width: Number.isFinite(Number(p?.width)) ? Math.round(Number(p.width)) : null,
+    height: Number.isFinite(Number(p?.height)) ? Math.round(Number(p.height)) : null
+  }));
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -49,7 +77,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { counts = {}, total = 0, severity = "unknown", score = 0, profile = null } = req.body || {};
+    const {
+      image,
+      imageType = "image/jpeg",
+      predictions = [],
+      counts = {},
+      total = 0,
+      severity = "unknown",
+      score = 0,
+      profile = null
+    } = req.body || {};
+    if (typeof image !== "string" || !image.length) {
+      res.status(400).json({ error: "The photo is required to build an image-grounded plan." });
+      return;
+    }
+    if (image.length > MAX_IMAGE_BASE64_LENGTH) {
+      res.status(413).json({ error: "The photo is too large. Choose a smaller image and try again." });
+      return;
+    }
+    const safeImageType = ALLOWED_IMAGE_TYPES.has(imageType) ? imageType : "image/jpeg";
+    const safePredictions = cleanPredictions(predictions);
     const breakdown = Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(", ") || "none";
 
     let who = "";
@@ -62,22 +109,37 @@ export default async function handler(req, res) {
       if (parts.length) who = `\nAbout the user:\n- ${parts.join("\n- ")}`;
     }
 
-    const userMsg = `Detection results:
+    const userMsg = `Analyze the attached photo together with these detector results.
+
+Roboflow detection summary:
 - Total blemishes: ${total}
 - Breakdown: ${breakdown}
-- Overall severity: ${severity} (score ${score})${who}
-Give the JSON plan with tiered product recommendations.`;
+- App-computed severity: ${severity} (weighted score ${score})
+- Detection boxes (pixel coordinates on this same image): ${JSON.stringify(safePredictions)}${who}
+
+Return the requested JSON plan. Ground visualFindings in this photo, make the routine specific to those findings,
+and clearly acknowledge any lighting/framing limitation.`;
 
     const rf = await fetch(GROQ_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: MODEL,
-        temperature: 0.5,
+        temperature: 0.25,
+        max_completion_tokens: 1800,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userMsg }
+          {
+            role: "user",
+            content: [
+              { type: "text", text: userMsg },
+              {
+                type: "image_url",
+                image_url: { url: `data:${safeImageType};base64,${image}` }
+              }
+            ]
+          }
         ]
       })
     });
@@ -102,6 +164,8 @@ Give the JSON plan with tiered product recommendations.`;
 
     res.status(200).json({
       summary: plan.summary || "",
+      visualFindings: Array.isArray(plan.visualFindings) ? plan.visualFindings.slice(0, 4) : [],
+      imageQuality: plan.imageQuality || "",
       routine: Array.isArray(plan.routine) ? plan.routine : [],
       products: { budget: tier("budget"), mid: tier("mid"), premium: tier("premium") },
       derm: plan.derm || ""
