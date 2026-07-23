@@ -57,7 +57,8 @@ The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`.
    room code, nickname, or Join button.
 
 The control board opens and closes one audience question at a time and shows submitted answers. It is not a
-slideshow and is not linked from the public website.
+slideshow and is not linked from the public website. Open `wall.html` on the presentation screen to show audience
+answers as they arrive.
 
 The storage token and presenter key are used only inside Vercel functions.
 
@@ -88,4 +89,5 @@ Clarity Labs is trained to identify:
 ├── IMG_6166.jpeg
 ├── index.html
 ├── README.md
+├── wall.html              # Full-screen audience response wall
 └── vercel.json  
