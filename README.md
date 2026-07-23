@@ -36,14 +36,13 @@ The computer-vision model scans the photo and identifies visible blemishes.
 
 Clarity Labs displays each detected blemish, organizes the results by type, and summarizes visible activity.
 
-### 4. Generate an Image-Grounded Plan
+### 4. Generate a Personalized Plan
 
-The same size-normalized photo and Roboflow detections are sent transiently to Groq Vision. Groq inspects the
-visible distribution and image quality, reconciles those observations with the detector's classes and boxes, and
-generates a photo-specific routine. The app does not save the uploaded image.
+Roboflow's detection counts, visible-activity summary, and the optional user profile are sent to Groq's
+`llama-3.3-70b-versatile` model. Groq returns a concise routine and product suggestions at three price levels.
+The uploaded image is not sent to Groq or saved by Clarity Labs.
 
-The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`. You can optionally set `GROQ_VISION_MODEL`;
-it defaults to `qwen/qwen3.6-27b`.
+The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`.
 
 ## Audience Board Setup
 

@@ -350,7 +350,7 @@
       <div id="adviceBody" style="display:none">
         <p class="advice-summary" id="advSummary"></p>
 
-        <div class="adv-block">
+        <div class="adv-block" id="advVisualBlock">
           <div class="adv-sectitle">What this photo shows</div>
           <ul class="visual-findings" id="advFindings"></ul>
           <p class="image-quality" id="advImageQuality"></p>
@@ -649,11 +649,7 @@
     $("adviceBody").style.display="none";
     try{
       const res=await fetch("/api/advice",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          image:currentBase64,imageType:currentImageType,predictions:lastPredictions,
-          counts:lastCounts,total:lastPredictions.length,activity:lastSev.level,score:lastSev.score,
-          profile:PROFILE||undefined
-        })});
+        body:JSON.stringify({counts:lastCounts,total:lastPredictions.length,severity:lastSev.level,score:lastSev.score,profile:PROFILE||undefined})});
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"Could not generate advice");
       renderAdvice(data);
@@ -670,6 +666,7 @@
     $("adviceBody").style.display="block";
     $("advSummary").textContent=d.summary||"";
     const findings=Array.isArray(d.visualFindings)?d.visualFindings:[];
+    $("advVisualBlock").style.display=(findings.length||d.imageQuality)?"block":"none";
     $("advFindings").innerHTML=findings.map(s=>`<li>${escapeHtml(s)}</li>`).join("");
     $("advFindings").style.display=findings.length?"grid":"none";
     $("advImageQuality").textContent=d.imageQuality||"";
