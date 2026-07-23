@@ -18,7 +18,7 @@ Users can upload a clear photo, view detected blemishes with labels and bounding
 - Count blemishes by type
 - Summarize visible activity without presenting a medical severity rating
 - Generate a personalized skincare routine
-- Run an unlisted presenter-controlled slideshow with on-screen discussion prompts
+- Let an audience open one link, submit short answers, and see them appear on the presenter board
 - Protect private API keys through serverless endpoints
 - Work across desktop and mobile devices
 
@@ -42,8 +42,23 @@ The same size-normalized photo and Roboflow detections are sent transiently to G
 visible distribution and image quality, reconciles those observations with the detector's classes and boxes, and
 generates a photo-specific routine. The app does not save the uploaded image.
 
-The deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`. You can optionally set `GROQ_VISION_MODEL`; it
-defaults to `qwen/qwen3.6-27b`.
+The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`. You can optionally set `GROQ_VISION_MODEL`;
+it defaults to `qwen/qwen3.6-27b`.
+
+## Audience Board Setup
+
+1. Create a free Supabase project.
+2. Open Supabase **SQL Editor** and run `supabase-presentation.sql`.
+3. Add these environment variables in Vercel for Production, Preview, and Development:
+   - `SUPABASE_URL` — the project URL.
+   - `SUPABASE_SECRET_KEY` — a new Supabase secret key. A legacy `SUPABASE_SERVICE_ROLE_KEY` also works.
+   - `PRESENTATION_HOST_KEY` — a long random password you create for the presenter.
+4. Redeploy the Vercel project.
+5. Open the presenter deck once with `presentation.html?key=YOUR_PRESENTATION_HOST_KEY`. The key is saved for
+   that browser tab and removed from the visible URL.
+6. Share `audience.html`. There is no login, room code, nickname, or Join button.
+
+The secret Supabase key is used only inside Vercel functions. It is never sent to the audience or presenter browser.
 
 ## Detected Classes
 
@@ -61,11 +76,16 @@ Clarity Labs is trained to identify:
 ```text
 .
 ├── api
+│   ├── _supabase.js
 │   ├── advice.js
-│   └── detect.js
+│   ├── detect.js
+│   ├── presentation-responses.js
+│   └── presentation-state.js
 ├── app.html
+├── audience.html
 ├── IMG_6166.jpeg
 ├── index.html
 ├── presentation.html      # Unlisted presenter-only route
 ├── README.md
+├── supabase-presentation.sql
 └── vercel.json  

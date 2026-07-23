@@ -64,6 +64,12 @@
   .discussion-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
   .discussion-option{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;gap:14px;align-items:center;font-size:17px;font-weight:650}
   .discussion-option b{width:32px;height:32px;border-radius:10px;background:var(--c);color:#fff;display:grid;place-items:center;flex:none}
+  .response-side{min-width:0}.response-wall{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-height:410px;overflow:auto}
+  .response-item{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 16px 16px 0;padding:16px 18px;font-family:"Fraunces";font-size:20px;line-height:1.25}
+  .response-empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:18px;padding:34px;text-align:center;color:var(--ink-soft)}
+  .response-footer{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:13px;color:var(--ink-soft);font-size:12px}
+  .clear-responses{border:0;background:transparent;color:var(--ink-soft);text-decoration:underline;padding:5px}
+  .audience-url{font-weight:700;color:var(--teal)}#boardStatus.problem{color:var(--accent)}
   .poll-meta{display:flex;gap:16px;align-items:center;margin-top:22px;font-size:14px;color:var(--ink-soft)}
   .poll-meta b{font-size:22px;color:var(--ink)}
   .bars{display:grid;gap:14px}
@@ -127,7 +133,7 @@
   }
   @media(max-width:560px){
     .deck{grid-template-rows:60px 1fr 72px}.slide{padding:25px 20px}.room-status{font-size:11px}.full-btn{display:none}
-    .cards{margin-top:20px}.poll-question{font-size:40px}.discussion-options{grid-template-columns:1fr}
+    .cards{margin-top:20px}.poll-question{font-size:40px}.discussion-options,.response-wall{grid-template-columns:1fr}
     .progress{width:90px}.nav-btn{padding:9px 12px}
   }
   @media(max-height:900px) and (min-width:851px){
@@ -146,7 +152,7 @@
 <main class="deck">
   <header class="topbar">
     <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>Clarity Labs</a>
-    <span class="mode">Presenter view</span>
+    <span class="mode">Presenter view · <span id="boardStatus">Board connecting…</span></span>
   </header>
   <button class="full-btn" id="fullscreen" type="button">Full screen</button>
 
@@ -162,18 +168,16 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Discussion question">
+    <section class="slide" data-title="Discussion question" data-prompt="challenge" data-question="What makes skincare advice hardest?">
       <div class="inner poll-layout">
         <div>
-          <div class="eyebrow">Audience poll</div>
+          <div class="eyebrow">Short-answer question</div>
           <h2 class="poll-question">What makes skincare advice hardest?</h2>
-          <p class="lead">Choose an answer together, then advance.</p>
+          <p class="lead">Answers appear on this board.</p>
         </div>
-        <div class="discussion-options">
-          <div class="discussion-option"><b style="--c:var(--accent)">A</b>Knowing what I’m seeing</div>
-          <div class="discussion-option"><b style="--c:var(--teal)">B</b>Choosing products</div>
-          <div class="discussion-option"><b style="--c:var(--violet)">C</b>Trusting online advice</div>
-          <div class="discussion-option"><b style="--c:var(--gold)">D</b>Staying consistent</div>
+        <div class="response-side">
+          <div class="response-wall" data-response-wall="challenge"><div class="response-empty">Waiting for answers…</div></div>
+          <div class="response-footer"><span><b data-response-count="challenge">0</b> answers · <span class="audience-url">anche-gamma.vercel.app/audience.html</span></span><button class="clear-responses" data-clear="challenge" type="button">Clear answers</button></div>
         </div>
       </div>
     </section>
@@ -218,18 +222,16 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Discussion question">
+    <section class="slide" data-title="Discussion question" data-prompt="value" data-question="Which feature creates the most value?">
       <div class="inner poll-layout">
         <div>
-          <div class="eyebrow">Audience poll</div>
+          <div class="eyebrow">Short-answer question</div>
           <h2 class="poll-question">Which feature creates the most value?</h2>
-          <p class="lead">Choose an answer together, then advance.</p>
+          <p class="lead">Answers appear on this board.</p>
         </div>
-        <div class="discussion-options">
-          <div class="discussion-option"><b style="--c:var(--accent)">A</b>Visual detection map</div>
-          <div class="discussion-option"><b style="--c:var(--teal)">B</b>Personalized routine</div>
-          <div class="discussion-option"><b style="--c:var(--violet)">C</b>Budget product picks</div>
-          <div class="discussion-option"><b style="--c:var(--blue)">D</b>Safety and limits</div>
+        <div class="response-side">
+          <div class="response-wall" data-response-wall="value"><div class="response-empty">Waiting for answers…</div></div>
+          <div class="response-footer"><span><b data-response-count="value">0</b> answers · <span class="audience-url">anche-gamma.vercel.app/audience.html</span></span><button class="clear-responses" data-clear="value" type="button">Clear answers</button></div>
         </div>
       </div>
     </section>
@@ -246,18 +248,16 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Audience questions">
+    <section class="slide" data-title="Audience questions" data-prompt="questions" data-question="What do you want to know about Clarity Labs?">
       <div class="inner questions">
         <div>
           <div class="eyebrow">Audience Q&amp;A</div>
           <h2>What do you <span class="accent">want to know?</span></h2>
-          <p class="lead">Take questions from the room.</p>
+          <p class="lead">Questions appear on this board.</p>
         </div>
-        <div class="discussion-options">
-          <div class="discussion-option"><b style="--c:var(--accent)">1</b>The model</div>
-          <div class="discussion-option"><b style="--c:var(--teal)">2</b>The product</div>
-          <div class="discussion-option"><b style="--c:var(--violet)">3</b>Privacy and safety</div>
-          <div class="discussion-option"><b style="--c:var(--gold)">4</b>What comes next</div>
+        <div class="response-side">
+          <div class="response-wall" data-response-wall="questions"><div class="response-empty">Waiting for questions…</div></div>
+          <div class="response-footer"><span><b data-response-count="questions">0</b> questions · <span class="audience-url">anche-gamma.vercel.app/audience.html</span></span><button class="clear-responses" data-clear="questions" type="button">Clear questions</button></div>
         </div>
       </div>
     </section>
@@ -282,7 +282,59 @@
 
 <script>
   const slides=[...document.querySelectorAll(".slide")];
-  let current=Math.max(0,Math.min(slides.length-1,(Number(new URLSearchParams(location.search).get("slide"))||1)-1));
+  const params=new URLSearchParams(location.search);
+  const suppliedKey=params.get("key");
+  if(suppliedKey)sessionStorage.setItem("clarity_presenter_key",suppliedKey);
+  const presenterKey=sessionStorage.getItem("clarity_presenter_key")||"";
+  let current=Math.max(0,Math.min(slides.length-1,(Number(params.get("slide"))||1)-1));
+  let responseTimer=null;
+
+  function escapeHTML(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
+  function activePrompt(){
+    const slide=slides[current],promptId=slide.dataset.prompt||"",question=slide.dataset.question||"";
+    return {promptId,question};
+  }
+  function setBoardStatus(text,problem=false){
+    const status=document.getElementById("boardStatus");status.textContent=text;status.classList.toggle("problem",problem);
+  }
+  async function publishState(){
+    if(!presenterKey){setBoardStatus("add presenter key",true);return}
+    const {promptId,question}=activePrompt();
+    try{
+      const response=await fetch("/api/presentation-state",{
+        method:"POST",headers:{"Content-Type":"application/json","x-presentation-key":presenterKey},
+        body:JSON.stringify({slide:current+1,promptId,question})
+      });
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||"Board could not update.");
+      setBoardStatus("board ready");
+    }catch(error){setBoardStatus(error.message||"board unavailable",true)}
+  }
+  function renderResponses(promptId,responses){
+    const wall=document.querySelector(`[data-response-wall="${promptId}"]`);
+    const count=document.querySelector(`[data-response-count="${promptId}"]`);
+    if(!wall||!count)return;
+    count.textContent=responses.length;
+    wall.innerHTML=responses.length
+      ?responses.slice(-20).map(item=>`<article class="response-item">${escapeHTML(item.answer)}</article>`).join("")
+      :`<div class="response-empty">Waiting for ${promptId==="questions"?"questions":"answers"}…</div>`;
+    wall.scrollTop=wall.scrollHeight;
+  }
+  async function loadResponses(){
+    const {promptId}=activePrompt();if(!promptId)return;
+    try{
+      const response=await fetch(`/api/presentation-responses?promptId=${encodeURIComponent(promptId)}`,{cache:"no-store"});
+      const data=await response.json();
+      if(response.ok)renderResponses(promptId,Array.isArray(data.responses)?data.responses:[]);
+      else setBoardStatus(data.error||"board unavailable",true);
+    }catch{setBoardStatus("board unavailable",true)}
+  }
+  function startResponsePolling(){
+    clearInterval(responseTimer);
+    if(!activePrompt().promptId)return;
+    loadResponses();
+    responseTimer=setInterval(loadResponses,1400);
+  }
 
   function show(index){
     current=Math.max(0,Math.min(slides.length-1,index));
@@ -294,6 +346,8 @@
     document.getElementById("next").textContent=current===slides.length-1?"End":"Next";
     document.title=`${current+1}. ${slides[current].dataset.title} — Clarity Labs`;
     history.replaceState(null,"",`${location.pathname}?slide=${current+1}`);
+    publishState();
+    startResponsePolling();
   }
   document.getElementById("prev").addEventListener("click",()=>show(current-1));
   document.getElementById("next").addEventListener("click",()=>show(current+1));
@@ -307,7 +361,13 @@
   document.getElementById("fullscreen").addEventListener("click",async()=>{
     try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{}
   });
+  document.querySelectorAll("[data-clear]").forEach(button=>button.addEventListener("click",async()=>{
+    const promptId=button.dataset.clear;if(!presenterKey||!confirm("Clear every answer for this question?"))return;
+    const response=await fetch(`/api/presentation-responses?promptId=${encodeURIComponent(promptId)}`,{method:"DELETE",headers:{"x-presentation-key":presenterKey}});
+    if(response.ok)renderResponses(promptId,[]);else setBoardStatus("Could not clear answers",true);
+  }));
   show(current);
+  addEventListener("beforeunload",()=>clearInterval(responseTimer));
 </script>
 </body>
 </html>

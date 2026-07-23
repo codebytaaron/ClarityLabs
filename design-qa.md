@@ -1,31 +1,47 @@
-# Presenter Slideshow QA
+# Audience Board QA
 
-## Scope
+## Intended flow
 
-- The slideshow is fully presenter-controlled.
-- The audience join page and all audience connection behavior were removed.
-- No QR code, room code, audience counter, PeerJS, BroadcastChannel, synchronized forms, or external signaling scripts remain.
-- A future backend can be added separately without changing the current presentation controls.
+- Audience members open `audience.html` directly.
+- There is no login, Join button, room code, or nickname.
+- The audience page is blank between question slides.
+- When the presenter advances to a prompt, the question and one short-answer field appear automatically.
+- Answers are limited to 100 characters.
+- Each browser can submit or update one answer per prompt.
+- Submitted answers appear on the presenter board.
 
-## Slide behavior
+## Backend
 
-- The deck contains nine on-screen slides.
-- The two poll slides show their questions and four answer choices directly on the presentation screen.
-- The Q&A slide shows four suggested discussion areas directly on the presentation screen.
-- The presenter advances with Previous, Next, arrow keys, Page Up/Page Down, spacebar, Home, or End.
-- Full-screen mode and direct slide URLs remain available.
+- Vercel API routes are the only clients allowed to access Supabase.
+- Supabase URL and secret key are read from server environment variables.
+- The secret/service-role key is never included in frontend HTML or JavaScript.
+- `PRESENTATION_HOST_KEY` protects slide-state changes and answer clearing.
+- SQL setup enables RLS and grants table access only to `service_role`.
+
+## Functional verification
+
+Tested with separate presenter and audience tabs against an in-memory API stand-in:
+
+1. Audience page opened with no join step and stayed blank on slide 1.
+2. Presenter advanced to slide 2.
+3. `What makes skincare advice hardest?` appeared automatically on the audience page.
+4. Audience submitted `Knowing which products actually match the scan`.
+5. The presenter board displayed the answer and count `1`.
+6. Presenter advanced to the next non-question slide.
+7. Audience page returned to its blank state.
+
+The Vercel API handlers were also tested directly with mocked Supabase REST responses:
+
+- Presenter state GET and authenticated POST passed.
+- Response GET and validated upsert POST passed.
+- All frontend and server scripts parse successfully.
+- All nine presentation slides fit at 1280 × 720 without overflow.
+- No browser warnings or errors were reported during the two-page flow.
 
 ## Public website
 
-- The public website no longer contains a Join Slideshow link.
-- `join.html` was removed.
-- The team section displays only `IMG_6166.jpeg`.
-- The original `team.jpg` is no longer used.
+- Navigation includes an **Audience** link to `audience.html`.
+- The team section still displays only `IMG_6166.jpeg`.
 
-## Verification
-
-- Inline scripts parse successfully.
-- No references to PeerJS, QRCode, room codes, joining, or audience connections remain in the slideshow.
-- Every slide is checked at presentation viewport size before deployment.
-
-final result: passed
+final code result: passed
+deployment dependency: Supabase environment variables and SQL setup
