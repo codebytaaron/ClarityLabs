@@ -459,10 +459,11 @@
     const status=document.getElementById("feedbackStatus");
     if(!selectedFeedbackRating){status.textContent="Choose a rating first.";return}
     if(!message){status.textContent="Add a short comment first.";return}
-    const submit=event.currentTarget.querySelector(".feedback-submit");
+    const feedbackForm=event.currentTarget;
+    const submit=feedbackForm.querySelector(".feedback-submit");
     submit.disabled=true;submit.textContent="Sending…";status.textContent="";
     setTimeout(()=>{
-      event.currentTarget.style.display="none";
+      feedbackForm.style.display="none";
       document.getElementById("feedbackSuccess").classList.add("show");
     },650);
   });
