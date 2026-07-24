@@ -1,107 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clarity Labs — Audience</title>
-<meta name="description" content="Answer the current Clarity Labs presentation question." />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clarity Labs — Audience Q&A</title>
+<meta name="description" content="Ask the Clarity Labs team a question during the presentation.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#F2EEE6;--ink:#17140F;--ink-soft:#5B554A;--line:#DAD3C4;--accent:#E8563A;--teal:#2E6E63;--card:#FBF9F4}
-  *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font-family:"Inter",-apple-system,sans-serif}
-  button,input{font:inherit}.shell{width:min(620px,100%);margin:0 auto;padding:24px 20px 60px}
-  .brand{display:flex;align-items:center;gap:10px;font-family:"Fraunces";font-size:21px;margin-bottom:54px}.mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative}.mark::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
-  .question-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--accent);margin-bottom:14px}
-  h1{font-family:"Fraunces",Georgia,serif;font-size:clamp(38px,10vw,58px);font-weight:400;letter-spacing:-.03em;line-height:1.02;margin:0 0 24px}
-  label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink-soft);margin-bottom:8px}
-  input{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px;color:var(--ink);outline:none}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
-  .row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:12px}.submit{border:0;background:var(--ink);color:var(--paper);border-radius:999px;padding:12px 20px;font-weight:700}.submit:hover{background:var(--accent)}
-  .count{font-size:12px;color:var(--ink-soft)}.status{min-height:22px;margin-top:13px;font-size:13px;font-weight:700;color:var(--teal)}.status.problem{color:var(--accent)}
-  .blank{min-height:58vh;display:grid;place-items:center;text-align:center}.waiting{max-width:360px}.waiting-mark{width:42px;height:42px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);margin:0 auto 18px;animation:spin 1.2s linear infinite}.waiting h1{font-size:36px;margin-bottom:10px}.waiting p{color:var(--ink-soft);line-height:1.55;margin:0}@keyframes spin{to{transform:rotate(360deg)}}.hidden{display:none}.answer-saved{border-left:4px solid var(--teal);padding:12px 14px;background:rgba(46,110,99,.08);border-radius:0 12px 12px 0;margin-bottom:18px;color:var(--ink-soft);line-height:1.45}
-  .response-wall{margin-top:18px}.wall-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:11px;padding:0 3px}.wall-title{font-family:"Fraunces";font-size:23px}.wall-count{font-size:12px;font-weight:700;color:var(--ink-soft)}
-  .responses{display:grid;gap:9px}.response{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;font-family:"Fraunces";font-size:20px;line-height:1.25;overflow-wrap:anywhere;animation:arrive .35s ease both}.response-empty{border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--ink-soft);font-size:13px}@keyframes arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  :root{--paper:#f2eee6;--card:#fbf9f4;--ink:#17140f;--soft:#5b554a;--line:#dad3c4;--accent:#e8563a;--green:#2e6e63}
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font-family:Inter,sans-serif}
+  button,textarea{font:inherit}.shell{width:min(680px,100%);margin:0 auto;padding:24px 20px 70px}
+  .brand{display:flex;align-items:center;gap:10px;font:500 21px Fraunces;margin-bottom:clamp(55px,10vh,110px)}
+  .mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative}.mark:before{content:"";position:absolute;inset:5px;border:1.5px solid var(--accent);border-radius:3px}
+  .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.13em;font-weight:700;color:var(--accent);margin-bottom:14px}
+  h1{font:400 clamp(46px,11vw,72px)/.98 Fraunces;letter-spacing:-.035em;margin:0 0 18px}
+  .lead{font-size:17px;line-height:1.6;color:var(--soft);margin:0 0 28px;max-width:550px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px}
+  label{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px}
+  textarea{width:100%;min-height:132px;resize:vertical;border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px;color:var(--ink);outline:none;line-height:1.5}
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px}.count{font-size:12px;color:var(--soft)}
+  .submit{border:0;background:var(--ink);color:var(--paper);border-radius:999px;padding:12px 20px;font-weight:700;cursor:pointer}.submit:hover{background:var(--accent)}.submit:disabled{opacity:.55;cursor:wait}
+  .status{min-height:22px;margin-top:13px;font-size:13px;font-weight:700;color:var(--green)}.status.problem{color:var(--accent)}
+  .success{display:none;text-align:center;padding:20px 6px}.success.show{display:block}.success-icon{width:54px;height:54px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:25px;margin:0 auto 16px}
+  .success h2{font:400 32px Fraunces;margin:0 0 8px}.success p{color:var(--soft);line-height:1.5;margin:0 0 18px}.again{border:1px solid var(--line);background:transparent;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer}
+  .note{display:flex;gap:10px;align-items:flex-start;color:var(--soft);font-size:12px;line-height:1.5;margin-top:18px}.note span:first-child{color:var(--accent);font-weight:700}
 </style>
 </head>
 <body>
 <main class="shell">
-  <div class="brand"><span class="mark" aria-hidden="true"></span>Clarity Labs</div>
-  <div id="blank" class="blank"><div class="waiting"><div class="waiting-mark"></div><h1>You’re ready.</h1><p>Watch the presentation. The next audience question will appear here automatically.</p></div></div>
-  <section id="questionCard" class="question-card hidden" aria-live="polite">
-    <div class="eyebrow">Audience question</div>
-    <h1 id="question"></h1>
-    <div id="savedAnswer"></div>
-    <form id="answerForm">
-      <label for="answer">Your short answer</label>
-      <input id="answer" maxlength="100" autocomplete="off" placeholder="Type up to 100 characters">
-      <div class="row"><span class="count"><span id="characterCount">0</span>/100</span><button class="submit" type="submit">Send answer</button></div>
-      <div class="status" id="status" role="status"></div>
+  <div class="brand"><span class="mark"></span>Clarity Labs</div>
+  <div class="eyebrow">Live audience Q&amp;A</div>
+  <h1>Ask us anything.</h1>
+  <p class="lead">Send a short question to the Clarity Labs team. It will appear privately on our presentation dashboard so we can answer it live.</p>
+  <section class="card">
+    <form id="questionForm">
+      <label for="question">Your question</label>
+      <textarea id="question" maxlength="160" placeholder="What would you like to know?" required></textarea>
+      <div class="row">
+        <span class="count"><span id="characterCount">0</span>/160</span>
+        <button class="submit" type="submit">Send question</button>
+      </div>
+      <div id="status" class="status" role="status"></div>
     </form>
+    <div id="success" class="success">
+      <div class="success-icon">✓</div>
+      <h2>Your question is in.</h2>
+      <p>Keep watching the presentation—we’ll answer audience questions live.</p>
+      <button id="askAnother" class="again" type="button">Ask another question</button>
+    </div>
   </section>
-  <section id="responseWall" class="response-wall hidden" aria-live="polite">
-    <div class="wall-head"><div class="wall-title">What the room is saying</div><div class="wall-count"><span id="responseCount">0</span> responses</div></div>
-    <div id="responses" class="responses"></div>
-  </section>
+  <div class="note"><span>Private</span><span>Your question is shown to the Clarity Labs presenters, not posted publicly on this page.</span></div>
 </main>
 <script>
   const clientId=localStorage.getItem("clarity_audience_id")||`aud_${crypto.randomUUID().replace(/-/g,"")}`;
   localStorage.setItem("clarity_audience_id",clientId);
-  const answers=JSON.parse(localStorage.getItem("clarity_audience_answers")||"{}");
-  const blank=document.getElementById("blank"),card=document.getElementById("questionCard"),question=document.getElementById("question"),answer=document.getElementById("answer"),status=document.getElementById("status"),savedAnswer=document.getElementById("savedAnswer"),responseWall=document.getElementById("responseWall"),responses=document.getElementById("responses");
-  let activeQuestionId="",loadingState=false,lastResponseSignature="";
-
-  function escapeHTML(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
-  function saveAnswers(){localStorage.setItem("clarity_audience_answers",JSON.stringify(answers))}
+  const form=document.getElementById("questionForm"),question=document.getElementById("question"),status=document.getElementById("status"),success=document.getElementById("success");
   function showStatus(text,problem=false){status.textContent=text;status.classList.toggle("problem",problem)}
-  function renderResponses(items){
-    document.getElementById("responseCount").textContent=items.length;
-    const signature=items.map(item=>`${item.id}:${item.answer}`).join("|");
-    if(signature===lastResponseSignature)return;
-    lastResponseSignature=signature;
-    responses.innerHTML=items.length
-      ?items.map(item=>`<article class="response">${escapeHTML(item.answer)}</article>`).join("")
-      :`<div class="response-empty">Be the first to answer.</div>`;
-  }
-  async function loadResponses(){
-    if(!activeQuestionId)return;
+  question.addEventListener("input",()=>document.getElementById("characterCount").textContent=question.value.length);
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();
+    const value=question.value.replace(/\s+/g," ").trim().slice(0,160);
+    if(value.length<3){showStatus("Please enter a complete question.",true);return}
+    const button=form.querySelector(".submit");button.disabled=true;button.textContent="Sending…";showStatus("");
     try{
-      const response=await fetch(`/api/audience-responses?questionId=${encodeURIComponent(activeQuestionId)}`,{cache:"no-store"});
-      const data=await response.json();
-      if(response.ok)renderResponses(Array.isArray(data.responses)?data.responses:[]);
-    }catch{}
-  }
-  function renderState(state){
-    const questionId=String(state.questionId||""),text=String(state.question||"");
-    if(!state.active||!questionId||!text){activeQuestionId="";lastResponseSignature="";card.classList.add("hidden");responseWall.classList.add("hidden");blank.classList.remove("hidden");return}
-    if(questionId!==activeQuestionId){
-      activeQuestionId=questionId;lastResponseSignature="";question.textContent=text;answer.value=answers[questionId]||"";
-      savedAnswer.innerHTML=answers[questionId]?`<div class="answer-saved">Your answer: ${answers[questionId].replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}</div>`:"";
-      document.getElementById("characterCount").textContent=answer.value.length;showStatus("");
-    }
-    blank.classList.add("hidden");card.classList.remove("hidden");responseWall.classList.remove("hidden");loadResponses();
-  }
-  async function loadState(){
-    if(loadingState)return;loadingState=true;
-    try{
-      const response=await fetch("/api/audience-question",{cache:"no-store"});
-      const data=await response.json();
-      if(response.ok)renderState(data);
-      else if(response.status===503){card.classList.remove("hidden");blank.classList.add("hidden");question.textContent="Audience board setup needed";showStatus("The presenter has not connected storage yet.",true)}
-    }catch{}finally{loadingState=false}
-  }
-  answer.addEventListener("input",()=>document.getElementById("characterCount").textContent=answer.value.length);
-  document.getElementById("answerForm").addEventListener("submit",async event=>{
-    event.preventDefault();const value=answer.value.replace(/\s+/g," ").trim().slice(0,100);
-    if(!activeQuestionId||!value){showStatus("Type a short answer first.",true);return}
-    showStatus("Sending…");
-    try{
-      const response=await fetch("/api/audience-responses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({questionId:activeQuestionId,clientId,answer:value})});
-      const data=await response.json();if(!response.ok)throw new Error(data.error||"Answer could not be sent.");
-      answers[activeQuestionId]=value;saveAnswers();savedAnswer.innerHTML=`<div class="answer-saved">Your answer: ${escapeHTML(value)}</div>`;showStatus("Your answer was sent.");loadResponses();
-    }catch(error){showStatus(error.message||"Answer could not be sent.",true)}
+      const response=await fetch("/api/audience-questions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({clientId,question:value})});
+      const data=await response.json();if(!response.ok)throw new Error(data.error||"Your question could not be sent.");
+      form.style.display="none";success.classList.add("show");
+    }catch(error){showStatus(error.message||"Your question could not be sent.",true)}
+    finally{button.disabled=false;button.textContent="Send question"}
   });
-  loadState();setInterval(loadState,1400);setInterval(loadResponses,1100);
+  document.getElementById("askAnother").addEventListener("click",()=>{
+    question.value="";document.getElementById("characterCount").textContent="0";success.classList.remove("show");form.style.display="block";showStatus("");question.focus();
+  });
 </script>
 </body>
 </html>
