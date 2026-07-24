@@ -18,7 +18,7 @@ Users can upload a clear photo, view detected blemishes with labels and bounding
 - Count blemishes by type
 - Summarize visible activity without presenting a medical severity rating
 - Generate a personalized skincare routine
-- Let an audience open one link, submit short answers, and see them appear on the presenter board
+- Let audience members submit questions that appear on the private presenter Q&A dashboard
 - Protect private API keys through serverless endpoints
 - Work across desktop and mobile devices
 
@@ -56,9 +56,7 @@ The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`.
 5. Share `audience.html`, or let visitors use the Audience button on the homepage. There is no login,
    room code, nickname, or Join button.
 
-The control board opens and closes one audience question at a time and shows submitted answers. It is not a
-slideshow and is not linked from the public website. The Audience page shows the shared response wall beneath
-the current question, updating as answers arrive.
+The Audience page lets people submit short questions throughout the presentation. Questions appear privately on the control board, where presenters can mark them answered or remove them while responding aloud.
 
 The storage token and presenter key are used only inside Vercel functions.
 
@@ -80,8 +78,7 @@ Clarity Labs is trained to identify:
 ├── api
 │   ├── _kv.js
 │   ├── advice.js
-│   ├── audience-question.js
-│   ├── audience-responses.js
+│   ├── audience-questions.js
 │   └── detect.js
 ├── app.html
 ├── audience.html
