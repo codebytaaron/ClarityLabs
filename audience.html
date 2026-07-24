@@ -27,6 +27,11 @@
   .success{display:none;text-align:center;padding:20px 6px}.success.show{display:block}.success-icon{width:54px;height:54px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:25px;margin:0 auto 16px}
   .success h2{font:400 32px Fraunces;margin:0 0 8px}.success p{color:var(--soft);line-height:1.5;margin:0 0 18px}.again{border:1px solid var(--line);background:transparent;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer}
   .note{display:flex;gap:10px;align-items:flex-start;color:var(--soft);font-size:12px;line-height:1.5;margin-top:18px}.note span:first-child{color:var(--accent);font-weight:700}
+
+  .feed{margin-top:28px}.feed-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:12px}.feed-head h2{font:400 29px Fraunces;margin:0}.feed-count{font-size:12px;font-weight:700;color:var(--soft)}
+  .question-feed{display:grid;gap:9px}.feed-item{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px;animation:arrive .35s ease both}.feed-item.answered{opacity:.62}.feed-question{font:400 20px/1.3 Fraunces;overflow-wrap:anywhere}.feed-meta{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11px;color:var(--soft)}.answered-tag{color:var(--green);font-weight:700}.waiting-tag{color:var(--accent);font-weight:700}
+  .feed-empty{border:1px dashed var(--line);border-radius:15px;padding:24px;text-align:center;color:var(--soft);font-size:13px}@keyframes arrive{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
 </style>
 </head>
 <body>
@@ -52,6 +57,11 @@
       <button id="askAnother" class="again" type="button">Ask another question</button>
     </div>
   </section>
+
+  <section class="feed">
+    <div class="feed-head"><h2>Questions from the room</h2><div class="feed-count"><span id="feedCount">0</span> questions</div></div>
+    <div id="questionFeed" class="question-feed"><div class="feed-empty">Be the first person to ask a question.</div></div>
+  </section>
   <div class="note"><span>Private</span><span>Your question is shown to the Clarity Labs presenters, not posted publicly on this page.</span></div>
 </main>
 <script>
@@ -75,6 +85,30 @@
   document.getElementById("askAnother").addEventListener("click",()=>{
     question.value="";document.getElementById("characterCount").textContent="0";success.classList.remove("show");form.style.display="block";showStatus("");question.focus();
   });
+
+  const questionFeed=document.getElementById("questionFeed");
+  let feedLoading=false,lastFeedSignature="";
+  function escapeHTML(value){return String(value||"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
+  function timeLabel(value){const date=new Date(value);return Number.isNaN(date.getTime())?"Just now":date.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}
+  function renderFeed(items){
+    const signature=items.map(item=>`${item.id}:${item.answered}:${item.question}`).join("|");
+    if(signature===lastFeedSignature)return;lastFeedSignature=signature;
+    document.getElementById("feedCount").textContent=items.length;
+    questionFeed.innerHTML=items.length?items.map(item=>`
+      <article class="feed-item ${item.answered?"answered":""}">
+        <div class="feed-question">${escapeHTML(item.question)}</div>
+        <div class="feed-meta"><span class="${item.answered?"answered-tag":"waiting-tag"}">${item.answered?"Answered live":"Waiting for an answer"}</span><span>·</span><span>${timeLabel(item.createdAt)}</span></div>
+      </article>`).join(""):`<div class="feed-empty">Be the first person to ask a question.</div>`;
+  }
+  async function loadFeed(){
+    if(feedLoading)return;feedLoading=true;
+    try{
+      const response=await fetch("/api/audience-questions",{cache:"no-store"});const data=await response.json();
+      if(response.ok)renderFeed(Array.isArray(data.questions)?data.questions:[]);
+    }catch{}finally{feedLoading=false}
+  }
+  loadFeed();setInterval(loadFeed,1100);
+
 </script>
 </body>
 </html>
