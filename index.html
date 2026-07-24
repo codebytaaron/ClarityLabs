@@ -150,22 +150,33 @@
   @media(max-width:760px){.sticky-launch{display:block}}
 
   /* FEEDBACK */
-  .feedback{padding:88px 0;background:var(--ink);color:var(--paper)}
-  .feedback-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:56px;align-items:start}
-  .feedback .sec-kicker{color:#F08B75}.feedback h2{font-size:clamp(34px,5vw,58px);line-height:1.02;margin:0 0 16px}
-  .feedback-copy{color:#C9C2B5;font-size:16px;line-height:1.65;margin:0;max-width:430px}
-  .feedback-card{background:#25211B;border:1px solid #3D382F;border-radius:22px;padding:26px}
-  .feedback-label{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#D8D1C4;margin-bottom:10px}
-  .rating-row{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
-  .rating-btn{width:44px;height:44px;border-radius:50%;border:1px solid #514A3F;background:transparent;color:var(--paper);font:600 15px Inter;cursor:pointer;transition:.2s}
-  .rating-btn:hover,.rating-btn.active{background:var(--accent);border-color:var(--accent);transform:translateY(-2px)}
-  .feedback textarea{width:100%;min-height:118px;resize:vertical;border:1px solid #514A3F;border-radius:14px;background:#17140F;color:var(--paper);font:400 15px/1.5 Inter;padding:14px;outline:none}
-  .feedback textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.18)}
-  .feedback-submit{margin-top:13px;border:0;border-radius:999px;background:var(--paper);color:var(--ink);font:700 14px Inter;padding:13px 20px;cursor:pointer}
-  .feedback-submit:hover{background:var(--accent);color:#fff}.feedback-status{min-height:22px;margin-top:12px;color:#A7D7C9;font-size:13px;font-weight:700}
-  .feedback-success{display:none;text-align:center;padding:35px 12px}.feedback-success.show{display:block}.feedback-success .check{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;background:var(--accent-2);font-size:25px}
-  .feedback-success h3{font-size:28px;margin:0 0 8px}.feedback-success p{color:#C9C2B5;margin:0}
-  @media(max-width:760px){.feedback-grid{grid-template-columns:1fr;gap:30px}.feedback{padding:68px 0}}
+  .feedback{position:relative;padding:104px 0;background:var(--paper-2);border-top:1px solid var(--line);overflow:hidden}
+  .feedback::before{content:"";position:absolute;width:440px;height:440px;border-radius:50%;background:radial-gradient(circle,rgba(232,86,58,.12),rgba(232,86,58,0) 68%);right:-130px;top:-190px;pointer-events:none}
+  .feedback-wrap{position:relative;max-width:900px;margin:0 auto}
+  .feedback-heading{text-align:center;max-width:650px;margin:0 auto 38px}
+  .feedback-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(251,249,244,.7);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:16px}
+  .feedback-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  .feedback h2{font-size:clamp(36px,5vw,58px);line-height:1.02;margin:0 0 14px}
+  .feedback-copy{color:var(--ink-soft);font-size:16px;line-height:1.65;margin:0 auto;max-width:560px}
+  .feedback-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:clamp(24px,4vw,38px);box-shadow:0 28px 70px -44px rgba(70,40,20,.42)}
+  .feedback-label{display:block;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:11px}
+  .rating-row{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:26px}
+  .rating-btn{min-height:54px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--ink);font:600 15px Inter;cursor:pointer;transition:transform .2s var(--ease),border-color .2s,background .2s,color .2s}
+  .rating-btn::after{display:block;font-size:9px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-soft);margin-top:3px;font-weight:600}
+  .rating-btn[data-rating="1"]::after{content:"Rough"}.rating-btn[data-rating="2"]::after{content:"Okay"}.rating-btn[data-rating="3"]::after{content:"Good"}.rating-btn[data-rating="4"]::after{content:"Great"}.rating-btn[data-rating="5"]::after{content:"Loved it"}
+  .rating-btn:hover{transform:translateY(-2px);border-color:var(--ink)}.rating-btn.active{background:var(--ink);border-color:var(--ink);color:var(--paper);transform:translateY(-2px)}
+  .rating-btn.active::after{color:#D9D1C4}
+  .feedback textarea{width:100%;min-height:126px;resize:vertical;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--ink);font:400 15px/1.55 Inter;padding:15px 16px;outline:none;transition:border-color .2s,box-shadow .2s}
+  .feedback textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.1)}
+  .feedback-form-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:14px}
+  .feedback-privacy{font-size:11px;color:var(--ink-soft);line-height:1.4}
+  .feedback-submit{flex:none;border:0;border-radius:999px;background:var(--ink);color:var(--paper);font:700 14px Inter;padding:13px 21px;cursor:pointer;transition:transform .2s var(--ease),background .2s}
+  .feedback-submit:hover{background:var(--accent);transform:translateY(-2px)}.feedback-submit:disabled{opacity:.6;cursor:wait;transform:none}
+  .feedback-status{min-height:20px;margin-top:10px;color:var(--accent);font-size:12px;font-weight:700}
+  .feedback-success{display:none;text-align:center;padding:40px 16px}.feedback-success.show{display:block}
+  .feedback-success .check{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;margin:0 auto 17px;background:rgba(46,110,99,.12);color:var(--accent-2);font-size:27px}
+  .feedback-success h3{font-size:31px;margin:0 0 8px}.feedback-success p{color:var(--ink-soft);margin:0}
+  @media(max-width:640px){.feedback{padding:76px 0}.rating-row{grid-template-columns:repeat(5,1fr);gap:6px}.rating-btn{min-height:50px;font-size:14px}.rating-btn::after{font-size:7px}.feedback-form-footer{align-items:stretch;flex-direction:column}.feedback-submit{width:100%}}
 
 </style>
 </head>
@@ -291,31 +302,36 @@
 
 <!-- FEEDBACK -->
 <section class="feedback" id="feedback">
-  <div class="container feedback-grid">
-    <div>
-      <div class="sec-kicker">Help us improve</div>
-      <h2>What should Clarity Labs do better?</h2>
-      <p class="feedback-copy">Share a quick rating and tell us what felt useful, confusing, or missing. This demo form does not save or send your response.</p>
-    </div>
-    <div class="feedback-card">
-      <form id="feedbackForm">
-        <label class="feedback-label">Your experience</label>
-        <div class="rating-row" role="group" aria-label="Rate your experience from 1 to 5">
-          <button class="rating-btn" type="button" data-rating="1" aria-label="1 out of 5">1</button>
-          <button class="rating-btn" type="button" data-rating="2" aria-label="2 out of 5">2</button>
-          <button class="rating-btn" type="button" data-rating="3" aria-label="3 out of 5">3</button>
-          <button class="rating-btn" type="button" data-rating="4" aria-label="4 out of 5">4</button>
-          <button class="rating-btn" type="button" data-rating="5" aria-label="5 out of 5">5</button>
+  <div class="container">
+    <div class="feedback-wrap">
+      <div class="feedback-heading">
+        <div class="feedback-pill">30-second feedback</div>
+        <h2>Help us make Clarity clearer.</h2>
+        <p class="feedback-copy">What felt useful—and what would make the experience better next time?</p>
+      </div>
+      <div class="feedback-card">
+        <form id="feedbackForm">
+          <label class="feedback-label">How was your experience?</label>
+          <div class="rating-row" role="group" aria-label="Rate your experience from 1 to 5">
+            <button class="rating-btn" type="button" data-rating="1" aria-label="1 out of 5">1</button>
+            <button class="rating-btn" type="button" data-rating="2" aria-label="2 out of 5">2</button>
+            <button class="rating-btn" type="button" data-rating="3" aria-label="3 out of 5">3</button>
+            <button class="rating-btn" type="button" data-rating="4" aria-label="4 out of 5">4</button>
+            <button class="rating-btn" type="button" data-rating="5" aria-label="5 out of 5">5</button>
+          </div>
+          <label class="feedback-label" for="feedbackMessage">What should we improve?</label>
+          <textarea id="feedbackMessage" maxlength="500" placeholder="A quick thought is perfect…"></textarea>
+          <div class="feedback-form-footer">
+            <span class="feedback-privacy">Demo feedback · nothing is saved or sent</span>
+            <button class="feedback-submit" type="submit">Share feedback →</button>
+          </div>
+          <div class="feedback-status" id="feedbackStatus" role="status"></div>
+        </form>
+        <div class="feedback-success" id="feedbackSuccess">
+          <div class="check">✓</div>
+          <h3>That’s genuinely helpful.</h3>
+          <p>Thanks for helping us shape the next version of Clarity Labs.</p>
         </div>
-        <label class="feedback-label" for="feedbackMessage">Your feedback</label>
-        <textarea id="feedbackMessage" maxlength="500" placeholder="Tell us what you would improve…"></textarea>
-        <button class="feedback-submit" type="submit">Send feedback</button>
-        <div class="feedback-status" id="feedbackStatus" role="status"></div>
-      </form>
-      <div class="feedback-success" id="feedbackSuccess">
-        <div class="check">✓</div>
-        <h3>Thank you.</h3>
-        <p>Your feedback helps shape what we build next.</p>
       </div>
     </div>
   </div>
