@@ -148,6 +148,25 @@
   .sticky-launch.show{transform:translateY(0)}
   .sticky-launch a{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--ink);color:var(--paper);padding:15px;border-radius:14px;font-weight:600;font-size:15px}
   @media(max-width:760px){.sticky-launch{display:block}}
+
+  /* FEEDBACK */
+  .feedback{padding:88px 0;background:var(--ink);color:var(--paper)}
+  .feedback-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:56px;align-items:start}
+  .feedback .sec-kicker{color:#F08B75}.feedback h2{font-size:clamp(34px,5vw,58px);line-height:1.02;margin:0 0 16px}
+  .feedback-copy{color:#C9C2B5;font-size:16px;line-height:1.65;margin:0;max-width:430px}
+  .feedback-card{background:#25211B;border:1px solid #3D382F;border-radius:22px;padding:26px}
+  .feedback-label{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#D8D1C4;margin-bottom:10px}
+  .rating-row{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+  .rating-btn{width:44px;height:44px;border-radius:50%;border:1px solid #514A3F;background:transparent;color:var(--paper);font:600 15px Inter;cursor:pointer;transition:.2s}
+  .rating-btn:hover,.rating-btn.active{background:var(--accent);border-color:var(--accent);transform:translateY(-2px)}
+  .feedback textarea{width:100%;min-height:118px;resize:vertical;border:1px solid #514A3F;border-radius:14px;background:#17140F;color:var(--paper);font:400 15px/1.5 Inter;padding:14px;outline:none}
+  .feedback textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,86,58,.18)}
+  .feedback-submit{margin-top:13px;border:0;border-radius:999px;background:var(--paper);color:var(--ink);font:700 14px Inter;padding:13px 20px;cursor:pointer}
+  .feedback-submit:hover{background:var(--accent);color:#fff}.feedback-status{min-height:22px;margin-top:12px;color:#A7D7C9;font-size:13px;font-weight:700}
+  .feedback-success{display:none;text-align:center;padding:35px 12px}.feedback-success.show{display:block}.feedback-success .check{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;background:var(--accent-2);font-size:25px}
+  .feedback-success h3{font-size:28px;margin:0 0 8px}.feedback-success p{color:#C9C2B5;margin:0}
+  @media(max-width:760px){.feedback-grid{grid-template-columns:1fr;gap:30px}.feedback{padding:68px 0}}
+
 </style>
 </head>
 <body>
@@ -269,6 +288,39 @@
   </div>
 </section>
 
+
+<!-- FEEDBACK -->
+<section class="feedback" id="feedback">
+  <div class="container feedback-grid">
+    <div>
+      <div class="sec-kicker">Help us improve</div>
+      <h2>What should Clarity Labs do better?</h2>
+      <p class="feedback-copy">Share a quick rating and tell us what felt useful, confusing, or missing. This demo form does not save or send your response.</p>
+    </div>
+    <div class="feedback-card">
+      <form id="feedbackForm">
+        <label class="feedback-label">Your experience</label>
+        <div class="rating-row" role="group" aria-label="Rate your experience from 1 to 5">
+          <button class="rating-btn" type="button" data-rating="1" aria-label="1 out of 5">1</button>
+          <button class="rating-btn" type="button" data-rating="2" aria-label="2 out of 5">2</button>
+          <button class="rating-btn" type="button" data-rating="3" aria-label="3 out of 5">3</button>
+          <button class="rating-btn" type="button" data-rating="4" aria-label="4 out of 5">4</button>
+          <button class="rating-btn" type="button" data-rating="5" aria-label="5 out of 5">5</button>
+        </div>
+        <label class="feedback-label" for="feedbackMessage">Your feedback</label>
+        <textarea id="feedbackMessage" maxlength="500" placeholder="Tell us what you would improve…"></textarea>
+        <button class="feedback-submit" type="submit">Send feedback</button>
+        <div class="feedback-status" id="feedbackStatus" role="status"></div>
+      </form>
+      <div class="feedback-success" id="feedbackSuccess">
+        <div class="check">✓</div>
+        <h3>Thank you.</h3>
+        <p>Your feedback helps shape what we build next.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="container foot-inner">
     <div class="disc"><b>Clarity Labs</b> is for informational and tracking purposes only and does not provide a medical diagnosis. Product suggestions are general education, not a prescription. For any skin concern, consult a licensed dermatologist.</div>
@@ -375,6 +427,30 @@
     });
   },{threshold:.5});
   document.querySelectorAll(".stat").forEach(s=>sio.observe(s));
+
+  // Demo-only feedback interaction: no response is transmitted or stored.
+  let selectedFeedbackRating=0;
+  document.querySelectorAll(".rating-btn").forEach(button=>button.addEventListener("click",()=>{
+    selectedFeedbackRating=Number(button.dataset.rating);
+    document.querySelectorAll(".rating-btn").forEach(item=>{
+      const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active));
+    });
+    document.getElementById("feedbackStatus").textContent="";
+  }));
+  document.getElementById("feedbackForm").addEventListener("submit",event=>{
+    event.preventDefault();
+    const message=document.getElementById("feedbackMessage").value.trim();
+    const status=document.getElementById("feedbackStatus");
+    if(!selectedFeedbackRating){status.textContent="Choose a rating first.";return}
+    if(!message){status.textContent="Add a short comment first.";return}
+    const submit=event.currentTarget.querySelector(".feedback-submit");
+    submit.disabled=true;submit.textContent="Sending…";status.textContent="";
+    setTimeout(()=>{
+      event.currentTarget.style.display="none";
+      document.getElementById("feedbackSuccess").classList.add("show");
+    },650);
+  });
+
 </script>
 </body>
 </html>
