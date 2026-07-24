@@ -46,14 +46,14 @@ export default async function handler(req, res) {
       return;
     }
 
-    if (!hostAuthorized(req)) {
-      res.status(401).json({ error: "Admin key is missing or incorrect.", questions: [] });
-      return;
-    }
-
     if (req.method === "GET") {
       const values = await kv(["HGETALL", QUESTIONS_KEY]);
       res.status(200).json({ questions: parseQuestions(values) });
+      return;
+    }
+
+    if (!hostAuthorized(req)) {
+      res.status(401).json({ error: "Admin key is missing or incorrect.", questions: [] });
       return;
     }
 
