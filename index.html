@@ -286,16 +286,7 @@
       <h2>Built for AI Launchpad at Babson.</h2>
       <p>A student project putting a real computer-vision model in front of real people.</p>
     </div>
-    <div class="team-carousel r" id="teamCarousel" aria-label="Clarity Labs team photos">
-      <div class="team-track" id="teamTrack">
-        <figure class="team-slide"><img src="IMG_6166.jpg" alt="The Clarity Labs team at AI Launchpad" data-candidates="IMG_6166.jpg|IMG_6166.jpeg|IMG_6166.JPG|IMG_6166.png" data-candidate-index="0" onerror="window.carouselImageFail&&window.carouselImageFail(this)"></figure>
-      </div>
-      <button class="carousel-btn prev" id="teamPrev" type="button" aria-label="Previous team photo">‹</button>
-      <button class="carousel-btn next" id="teamNext" type="button" aria-label="Next team photo">›</button>
-      <div class="carousel-dots" id="teamDots" aria-label="Choose a team photo"></div>
-    </div>
     <p class="team-names r" id="teamNames">Teddy Aaron &nbsp;·&nbsp; June Meyer &nbsp;·&nbsp; Rikki Chatterjee &nbsp;·&nbsp; Kai Izzi</p>
-    <div class="members" id="members" style="display:none"></div>
   </div>
 </section>
 
@@ -376,44 +367,6 @@
       <p class="desc">${c.desc}</p>
     </div>`).join("");
 
-  // team — swipeable photos with monogram cards as the final fallback
-  document.getElementById("members").innerHTML=TEAM.map(m=>`
-    <div class="member r in">
-      <div class="mono" style="background:${m.color}">${initials(m.name)}</div>
-      <div class="mn">${m.name}</div>
-      <div class="mr">Babson · AI Launchpad</div>
-    </div>`).join("");
-  const teamCarousel=document.getElementById("teamCarousel"),teamTrack=document.getElementById("teamTrack"),teamDots=document.getElementById("teamDots");
-  let currentTeamSlide=0;
-  function teamSlides(){return [...teamTrack.querySelectorAll(".team-slide")]}
-  function showTeamSlide(index){
-    const count=teamSlides().length;if(!count)return;
-    currentTeamSlide=(index+count)%count;
-    teamTrack.scrollLeft=currentTeamSlide*teamTrack.clientWidth;
-    teamDots.querySelectorAll(".carousel-dot").forEach((dot,i)=>dot.classList.toggle("active",i===currentTeamSlide));
-  }
-  function renderTeamCarousel(){
-    const slides=teamSlides();
-    if(!slides.length){
-      teamCarousel.remove();document.getElementById("teamNames")?.remove();document.getElementById("members").style.display="grid";return
-    }
-    teamDots.innerHTML=slides.map((_,i)=>`<button class="carousel-dot ${i===0?"active":""}" type="button" aria-label="Show team photo ${i+1}" data-team-slide="${i}"></button>`).join("");
-    const multiple=slides.length>1;
-    document.getElementById("teamPrev").style.display=multiple?"grid":"none";document.getElementById("teamNext").style.display=multiple?"grid":"none";teamDots.style.display=multiple?"flex":"none";
-    currentTeamSlide=Math.min(currentTeamSlide,slides.length-1);
-    teamDots.querySelectorAll("[data-team-slide]").forEach(button=>button.addEventListener("click",()=>showTeamSlide(Number(button.dataset.teamSlide))))
-  }
-  window.carouselImageFail=function(image){
-    const candidates=(image.dataset.candidates||"").split("|").filter(Boolean),next=Number(image.dataset.candidateIndex||0)+1;
-    if(next<candidates.length){image.dataset.candidateIndex=String(next);image.src=candidates[next];return}
-    image.closest(".team-slide")?.remove();renderTeamCarousel();
-  };
-  document.getElementById("teamPrev").addEventListener("click",()=>showTeamSlide(currentTeamSlide-1));
-  document.getElementById("teamNext").addEventListener("click",()=>showTeamSlide(currentTeamSlide+1));
-  let teamScrollFrame;
-  teamTrack.addEventListener("scroll",()=>{cancelAnimationFrame(teamScrollFrame);teamScrollFrame=requestAnimationFrame(()=>{currentTeamSlide=Math.round(teamTrack.scrollLeft/teamTrack.clientWidth);teamDots.querySelectorAll(".carousel-dot").forEach((dot,i)=>dot.classList.toggle("active",i===currentTeamSlide))})});
-  renderTeamCarousel();
-  teamTrack.querySelectorAll("img").forEach(image=>{if(image.complete&&!image.naturalWidth)window.carouselImageFail(image)});
 
   // nav + sticky
   const nav=document.getElementById("nav"), sticky=document.getElementById("stickyLaunch");
