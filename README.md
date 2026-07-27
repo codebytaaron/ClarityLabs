@@ -58,8 +58,6 @@ The scan deployment requires `ROBOFLOW_API_KEY` and `GROQ_API_KEY`.
 
 The Audience page lets people submit short questions throughout the presentation. Questions appear privately on the control board, where presenters can mark them answered or remove them while responding aloud.
 
-The storage token and presenter key are used only inside Vercel functions.
-
 ## Detected Classes
 
 Clarity Labs is trained to identify:
